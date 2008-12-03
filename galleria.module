@@ -1,0 +1,105 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Turns a node into a Galleria image gallery.
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function galleria_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'node_type_form' && isset($form['identity']['type'])) {
+    $form['workflow']['galleria'] = array(
+      '#type' => 'radios',
+      '#title' => t('Galleria'),
+      '#default_value' => variable_get('galleria_'. $form['#node_type']->type, 0),
+      '#options' => array(t('Disabled'), t('Enabled')),
+      '#description' => t('Convert this node type into a Galleria.')
+    );
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function galleria_theme() {
+  return array(
+    'galleria' => array(
+      'template' => 'galleria',
+      'arguments' => array('node' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
+  switch ($op) {
+    case 'view':
+      // abort unless we are viewing full page
+      if (!$page) {
+        break;
+      }
+
+      // abort if this is not a galleria type
+      if (variable_get("galleria_$node->type", 0) == 0) {
+        break;
+      }
+
+      // this is a galleria node, so perform modifications!
+      _galleria_includes();
+      unset($node->content);
+      $node->content['galleria']['#value'] = theme('galleria', $node);
+      $node->content['galleria']['#weight'] = 10;
+      break;
+  }
+}
+
+/**
+ * Include necessary files for the galleria.
+ */
+function _galleria_includes() {
+  $modulepath = drupal_get_path('module', 'galleria');
+  drupal_add_css($modulepath . '/inc/galleria.css');
+
+  // add thickbox
+  drupal_add_js($modulepath . '/thickbox/thickbox-compressed.js');
+  drupal_add_css($modulepath . '/thickbox/thickbox.css');
+
+  // pass through the dynamic path so it can be accessed from the jquery
+  $js = "var path_to_galleria = '". base_path() . $modulepath . "';";
+  drupal_add_js($js, 'inline');
+
+  // main plugin
+  drupal_add_js($modulepath . '/inc/jquery.galleria.js');
+
+  // activate galleria on .galleria elements
+  drupal_add_js($modulepath . '/inc/galleria.js');
+}
+
+/**
+ * Preprocess the galleria variables.
+ */
+function template_preprocess_galleria(&$vars) {
+  $files = $vars['node']->files;
+  $images = array();
+  $i = 0;
+
+  foreach ($files as $file) {
+    $images[] = array(
+      'data' => theme('image', $file->filepath),
+      'class' => $i == 0 ? 'active' : '',
+    );
+    $i++;
+  }
+
+  $attribs = array(
+    'class' => 'gallery',
+  );
+  $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs);
+}
+
+
