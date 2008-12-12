@@ -7,6 +7,63 @@
  */
 
 /**
+ * Include necessary files for the galleria.
+ */
+function _galleria_includes() {
+  $modulepath = drupal_get_path('module', 'galleria');
+  drupal_add_css($modulepath . '/inc/galleria.css');
+  drupal_add_js($modulepath . '/inc/jquery.galleria.js');
+  drupal_add_js($modulepath . '/inc/galleria.js');
+}
+
+/**
+ * Include necessary files for the thickbox
+ */
+function _thickbox_includes() {
+  $modulepath = drupal_get_path('module', 'galleria');
+
+  // pass through the path to the loading animation GIF.
+  static $path_set = FALSE;
+  if (!$path_set) {
+    drupal_add_js(array('tb_pathToImage' => base_path() . $modulepath . '/thickbox/loadingAnimation.gif'), 'setting');
+    $path_set = TRUE;
+  }
+
+  // need to put thickbox in the footer because there's no other way to get
+  // Drupal.settings above the thickbox js. This is fixed in Drupal 7 with
+  // weight property being added to the drupal_add_js() function.
+  drupal_add_js($modulepath . '/thickbox/thickbox-compressed.js', 'module', 'footer');
+  drupal_add_css($modulepath . '/thickbox/thickbox.css');
+}
+
+/**
+ * Check that the node is a valid Galleria
+ */
+function galleria_is_valid($node) {
+  $valid = FALSE;
+
+  if (is_object($node)) {
+    // has this type been chosen as a galleria?
+    if (variable_get("galleria_$node->type", 0) == 1) {
+      // are there attachments?
+      if (!empty($node->files)) {
+        $allowed_extensions = array('jpg', 'png', 'jpeg', 'gif');
+        $valid = TRUE;
+        // check each file extension
+        foreach ($node->files as $file) {
+          $ext = substr($file->filename, -3);
+          if (!in_array($ext, $allowed_extensions)) {
+            $valid = FALSE;
+          }
+        }
+      }
+    }
+  }
+
+  return $valid;
+}
+
+/**
  * Implementation of hook_form_alter().
  */
 function galleria_form_alter(&$form, $form_state, $form_id) {
@@ -30,7 +87,74 @@ function galleria_theme() {
       'template' => 'galleria',
       'arguments' => array('node' => NULL),
     ),
+    'galleria_thickbox_link' => array(
+      'arguments' => array('nid' => NULL),
+    ),
   );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function galleria_menu() {
+  // add callback so that going to example.com/galleria/nid will return just
+  // galleria and no sidebars or any of that. Used for displaying inside a
+  // thickbox (iframe).
+  $items['galleria'] = array(
+    'page callback' => 'galleria_iframe',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Menu callback to create just the galleria HTML data that gets embedded in
+ * a thickbox
+ *
+ * @param $nid
+ *    node id to serve XML from
+ */
+function galleria_iframe($nid = NULL) {
+  if (!is_numeric($nid)) {
+    return;
+  }
+  $node = node_load($nid);
+
+  if (!galleria_is_valid($node)) {
+    drupal_set_message(t('Galleria is not valid.'), 'error');
+    return drupal_not_found();
+  }
+
+  _galleria_includes();
+  $output = theme('galleria', $node);
+  return $output;
+}
+
+/**
+ * Preprocess page.
+ */
+function galleria_preprocess_page(&$vars) {
+  $nid = arg(1);
+  if (is_numeric($nid) && arg(0) == 'galleria') {
+    $node = node_load($nid);
+    if (galleria_is_valid($node)) {
+      $vars['template_file'] = 'galleria_iframe';
+    }
+  }
+}
+
+/**
+ * Suggest to Drupal the location of the template file
+ * http://11heavens.com/theming-Drupal-6-from-the-module-layer
+ */
+function galleria_theme_registry_alter(&$theme_registry) {
+  $theme_hook = 'page'; // my hook name
+  // Get the path to this module
+  $modulepath = drupal_get_path('module', 'galleria');
+  // Add the module path on top in the array of paths
+  array_unshift($theme_registry[$theme_hook]['theme paths'], $modulepath);
 }
 
 /**
@@ -44,40 +168,43 @@ function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
         break;
       }
 
-      // abort if this is not a galleria type
       if (variable_get("galleria_$node->type", 0) == 0) {
+        break;
+      }
+
+      if (!galleria_is_valid($node)) {
+        drupal_set_message(t('Galleria is not valid.'), 'error');
         break;
       }
 
       // this is a galleria node, so perform modifications!
       _galleria_includes();
-      unset($node->content);
+      unset($node->content['files']);
       $node->content['galleria']['#value'] = theme('galleria', $node);
-      $node->content['galleria']['#weight'] = 10;
+      $node->content['galleria']['#weight'] = -10;
       break;
   }
 }
 
 /**
- * Include necessary files for the galleria.
+ * Theme the link that opens a thickbox with a galleria in it
  */
-function _galleria_includes() {
-  $modulepath = drupal_get_path('module', 'galleria');
-  drupal_add_css($modulepath . '/inc/galleria.css');
+function theme_galleria_thickbox_link($nid, $width, $height, $text) {
+  if (!is_numeric($nid) || !is_numeric($width) || !is_numeric($height)) {
+    return;
+  }
 
-  // add thickbox
-  drupal_add_js($modulepath . '/thickbox/thickbox-compressed.js');
-  drupal_add_css($modulepath . '/thickbox/thickbox.css');
-
-  // pass through the dynamic path so it can be accessed from the jquery
-  $js = "var path_to_galleria = '". base_path() . $modulepath . "';";
-  drupal_add_js($js, 'inline');
-
-  // main plugin
-  drupal_add_js($modulepath . '/inc/jquery.galleria.js');
-
-  // activate galleria on .galleria elements
-  drupal_add_js($modulepath . '/inc/galleria.js');
+  _thickbox_includes();
+  $query = array(
+    'KeepThis' => 'true',
+    'TB_iframe' => 'true',
+    'height' => $height,
+    'width' => $width,
+  );
+  $attribs = array(
+    'class' => 'thickbox galleria-link',
+  );
+  return l($text, "galleria/$nid", array('query' => $query, 'attributes' => $attribs, 'html' => TRUE));
 }
 
 /**
@@ -99,7 +226,15 @@ function template_preprocess_galleria(&$vars) {
   $attribs = array(
     'class' => 'gallery',
   );
+
+  if ($i == 1) {
+    // if only one image, turn off display of thumbnails
+    //$attribs['style'] = 'height: 1px;';
+  }
+  else {
+    // add prev-next links
+    $vars['next_prev_links'] = '<a onclick="$.galleria.prev(); return false;" href="#"><< previous</a> | <a onclick="$.galleria.next(); return false;" href="#">next >></a>';
+  }
+
   $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs);
 }
-
-

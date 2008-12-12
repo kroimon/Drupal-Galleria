@@ -38,9 +38,18 @@ var options = {
       function() { thumb.fadeTo('fast',1); },
       function() { _li.not('.active').children('img').fadeTo('fast',0.3); } // don't fade out if the parent is active
     )
-  }
+  },
+
+  history : false
 };
 
+// run Galleria on main document load. Used for viewing a plain Galleria node
 jQuery(function($) {
+  $('ul.gallery').galleria(options);
+});
+
+// run Galleria jQuery from the iFrame. Bind to the parent doc's loaded method.
+// used for the thickbox functionality.
+$('#TB_iframeContent', top.document).load(function () {
   $('ul.gallery').galleria(options);
 });
