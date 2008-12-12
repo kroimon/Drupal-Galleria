@@ -228,8 +228,7 @@ function template_preprocess_galleria(&$vars) {
   );
 
   if ($i == 1) {
-    // if only one image, turn off display of thumbnails
-    //$attribs['style'] = 'height: 1px;';
+    // TODO : if only one image, turn off display of thumbnails
   }
   else {
     // add prev-next links
