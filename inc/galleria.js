@@ -48,8 +48,3 @@ jQuery(function($) {
   $('ul.gallery').galleria(options);
 });
 
-// run Galleria jQuery from the iFrame. Bind to the parent doc's loaded method.
-// used for the thickbox functionality.
-$('#TB_iframeContent', top.document).load(function () {
-  $('ul.gallery').galleria(options);
-});

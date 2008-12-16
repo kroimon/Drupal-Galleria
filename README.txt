@@ -48,7 +48,3 @@ plugin. The reasons I chose to go my own way:
 - Galleria uses Drupal theme layer properly (i.e. preprocess function and
   a template file). BornFree does not.
 
-Credit
----------------------
-Thanks to DevKick for Galleria, and for this answer on Stack Overflow:
-http://stackoverflow.com/questions/205087/jquery-ready-in-a-dynamically-inserted-iframe

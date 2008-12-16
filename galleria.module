@@ -17,26 +17,6 @@ function _galleria_includes() {
 }
 
 /**
- * Include necessary files for the thickbox
- */
-function _thickbox_includes() {
-  $modulepath = drupal_get_path('module', 'galleria');
-
-  // pass through the path to the loading animation GIF.
-  static $path_set = FALSE;
-  if (!$path_set) {
-    drupal_add_js(array('tb_pathToImage' => base_path() . $modulepath . '/thickbox/loadingAnimation.gif'), 'setting');
-    $path_set = TRUE;
-  }
-
-  // need to put thickbox in the footer because there's no other way to get
-  // Drupal.settings above the thickbox js. This is fixed in Drupal 7 with
-  // weight property being added to the drupal_add_js() function.
-  drupal_add_js($modulepath . '/thickbox/thickbox-compressed.js', 'module', 'footer');
-  drupal_add_css($modulepath . '/thickbox/thickbox.css');
-}
-
-/**
  * Check that the node is a valid Galleria
  */
 function galleria_is_valid($node) {
@@ -87,7 +67,7 @@ function galleria_theme() {
       'template' => 'galleria',
       'arguments' => array('node' => NULL),
     ),
-    'galleria_thickbox_link' => array(
+    'galleria_lightbox_link' => array(
       'arguments' => array('nid' => NULL),
     ),
   );
@@ -99,7 +79,7 @@ function galleria_theme() {
 function galleria_menu() {
   // add callback so that going to example.com/galleria/nid will return just
   // galleria and no sidebars or any of that. Used for displaying inside a
-  // thickbox (iframe).
+  // lightbox (iframe).
   $items['galleria'] = array(
     'page callback' => 'galleria_iframe',
     'access callback' => 'user_access',
@@ -111,7 +91,7 @@ function galleria_menu() {
 
 /**
  * Menu callback to create just the galleria HTML data that gets embedded in
- * a thickbox
+ * a lightbox
  *
  * @param $nid
  *    node id to serve XML from
@@ -187,24 +167,23 @@ function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
 }
 
 /**
- * Theme the link that opens a thickbox with a galleria in it
+ * Theme the link that opens a lightbox with a galleria in it
  */
-function theme_galleria_thickbox_link($nid, $width, $height, $text) {
+function theme_galleria_lightbox_link($nid, $width, $height, $text) {
   if (!is_numeric($nid) || !is_numeric($width) || !is_numeric($height)) {
+    drupal_set_message(t('Invalid arguments passed to theme_galleria_lightbox_link.'), 'error');
     return;
   }
 
-  _thickbox_includes();
-  $query = array(
-    'KeepThis' => 'true',
-    'TB_iframe' => 'true',
-    'height' => $height,
-    'width' => $width,
-  );
+  if (!module_exists('lightbox2')) {
+    drupal_set_message(t('Please install the Lightbox2 module to enable this functionality'), 'error');
+    return;
+  }
+
   $attribs = array(
-    'class' => 'thickbox galleria-link',
+    'rel' => 'lightframe[|width:' . $width . 'px; height:' . $height . 'px;]',
   );
-  return l($text, "galleria/$nid", array('query' => $query, 'attributes' => $attribs, 'html' => TRUE));
+  return l($text, "galleria/$nid", array('attributes' => $attribs, 'html' => TRUE));
 }
 
 /**
@@ -224,16 +203,9 @@ function template_preprocess_galleria(&$vars) {
   }
 
   $attribs = array(
-    'class' => 'gallery',
+    'class' => 'gallery clear-block',
   );
 
-  if ($i == 1) {
-    // TODO : if only one image, turn off display of thumbnails
-  }
-  else {
-    // add prev-next links
-    $vars['next_prev_links'] = '<a onclick="$.galleria.prev(); return false;" href="#"><< previous</a> | <a onclick="$.galleria.next(); return false;" href="#">next >></a>';
-  }
-
+  $vars['next_prev_links'] = '<a onclick="$.galleria.prev(); return false;" href="#"><< previous</a> | <a onclick="$.galleria.next(); return false;" href="#">next >></a>';
   $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs);
 }
