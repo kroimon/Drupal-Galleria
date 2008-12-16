@@ -190,13 +190,16 @@ function theme_galleria_lightbox_link($nid, $width, $height, $text) {
  * Preprocess the galleria variables.
  */
 function template_preprocess_galleria(&$vars) {
-  $files = $vars['node']->files;
+  $node = $vars['node'];
+  $files = $node->files;
+  $captions = $node->field_captions;
   $images = array();
   $i = 0;
 
   foreach ($files as $file) {
+    $caption = is_array($captions[$i]) ? $captions[$i]['safe'] : '';
     $images[] = array(
-      'data' => theme('image', $file->filepath),
+      'data' => theme('image', $file->filepath, $caption, $caption),
       'class' => $i == 0 ? 'active' : '',
     );
     $i++;

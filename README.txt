@@ -20,21 +20,32 @@ Galleria relies on the core upload.module. You attach your images to a node, and
 4.  Create a new Galleria node, and attach the images using the upload files function.
 5.  View the node, and voila, you have a Galleria!
 
-Thickbox support
+Lightbox support
 ---------------------
 
-You can have your Galleria open inside a thickbox. Just use the theme function:
+You can have your Galleria open inside a lightbox. Start by downloading and installing the Lightbox2 module from http://drupal.org/project/lightbox2. Then use the following Galleria theme function:
 
-theme('galleria_thickbox_link', $nid, $width, $height, $text);
+theme('galleria_lightbox_link', $nid, $width, $height, $text);
 
-This will give you an anchor link to the Galleria with node id "$nid". Clicking the link opens a thickbox containing the Galleria. This is done by requesting an iFrame from the module.
+This will give you an anchor link to the Galleria with node id "$nid". Clicking the link opens a lightbox containing the Galleria. This is done by requesting an iFrame from the module.
 
-Note that the file thickbox-compressed.js that is included in the module has a one-line change (dynamic path to the loadingAnimation.gif file), so don't replace it without preserving this change.
+Captions
+---------------------
+
+To add a caption to each image, install the CCK module from http://drupal.org/project/cck, and then add a text field to your Galleria node type, with the properties:
+
+Label: Captions
+Name: field_captions
+Type: Text
+Form element: Text field
+Number of values: Unlimited
+
+Then you can add captions to each image. They will be chosen in order, i.e. the first caption will apply to the first image in the list.
 
 Customisation
 ---------------------
 
-There is a preprocess hook and a template file for all your customisation needs. You can style the galleria by overriding the CSS.
+There is a preprocess hook and template files for all your customisation needs. You can style the galleria by overriding the CSS.
 
 Similar modules
 ---------------------
@@ -47,4 +58,3 @@ plugin. The reasons I chose to go my own way:
 - Galleria uses the core Upload module to attach a bunch of images to a node.
 - Galleria uses Drupal theme layer properly (i.e. preprocess function and
   a template file). BornFree does not.
-
