@@ -1,5 +1,12 @@
 // $Id$
 
-Galleria 1.0, 2008-12-12
+Galleria 1.0, 2008--
+----------------------
+- [#347903] - caption bugfix, changed 'safe' to 'value'.
+
+
+Galleria 1.0-beta1, 2008-12-12
 ----------------------
 - Initial release
+- [#345267] - added captions
+- [#343852] - body text included in display

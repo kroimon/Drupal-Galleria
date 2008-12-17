@@ -197,7 +197,7 @@ function template_preprocess_galleria(&$vars) {
   $i = 0;
 
   foreach ($files as $file) {
-    $caption = is_array($captions[$i]) ? $captions[$i]['safe'] : '';
+    $caption = is_array($captions[$i]) ? $captions[$i]['value'] : '';
     $images[] = array(
       'data' => theme('image', $file->filepath, $caption, $caption),
       'class' => $i == 0 ? 'active' : '',
