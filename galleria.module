@@ -9,11 +9,32 @@
 /**
  * Include necessary files for the galleria.
  */
-function _galleria_includes() {
+function galleria_includes() {
   $modulepath = drupal_get_path('module', 'galleria');
   drupal_add_css($modulepath . '/inc/galleria.css');
   drupal_add_js($modulepath . '/inc/jquery.galleria.js');
   drupal_add_js($modulepath . '/inc/galleria.js');
+}
+
+/**
+ * Helper to ensure file extension is an image
+ */
+function galleria_validate_file_extensions($files) {
+  $allowed_extensions = array('jpg', 'png', 'jpeg', 'gif');
+  $valid = TRUE;
+
+  // check each file extension
+  foreach ($files as $file) {
+    $ext = strtolower(substr($file->filename, -4));
+    if (substr($ext, 0, 1) == '.') {
+      $ext = substr($ext, 1, 3);
+    }
+    if (!in_array($ext, $allowed_extensions)) {
+      $valid = FALSE;
+    }
+  }
+
+  return $valid;
 }
 
 /**
@@ -23,21 +44,18 @@ function galleria_is_valid($node) {
   $valid = FALSE;
 
   if (is_object($node)) {
-    // has this type been chosen as a galleria?
-    if (variable_get("galleria_$node->type", 0) == 1) {
-      // are there attachments?
-      if (!empty($node->files)) {
-        $allowed_extensions = array('jpg', 'png', 'jpeg', 'gif');
-        $valid = TRUE;
-        // check each file extension
-        foreach ($node->files as $file) {
-          $ext = substr($file->filename, -3);
-          if (!in_array($ext, $allowed_extensions)) {
-            $valid = FALSE;
-          }
-        }
+    // are there attachments?
+    if (!empty($node->files)) {
+      if (!($valid = galleria_validate_file_extensions($node->files))) {
+        drupal_set_message(t('Invalid Galleria: one or more attached files are not images.'), 'error');
       }
     }
+    else {
+      drupal_set_message(t('Invalid Galleria: there are no attachments.'), 'error');
+    }
+  }
+  else {
+    drupal_set_message(t('Invalid Galleria: not a node.'), 'error');
   }
 
   return $valid;
@@ -107,7 +125,7 @@ function galleria_iframe($nid = NULL) {
     return drupal_not_found();
   }
 
-  _galleria_includes();
+  galleria_includes();
   $output = theme('galleria', $node);
   return $output;
 }
@@ -138,31 +156,41 @@ function galleria_theme_registry_alter(&$theme_registry) {
 }
 
 /**
+* Implementation of hook_content_extra_fields() in content.module.
+*
+* CCK hook to allow sorting of the gallery display.
+*/
+function galleria_content_extra_fields($type_name) {
+  if (!empty($type_name) && variable_get("galleria_$type_name", 0) == 1) {
+    return array(
+      'galleria' => array(
+        'label' => t('Gallery'),
+        'description' => t('The Galleria display.'),
+        'weight' => -10,
+      ),
+    );
+  }
+}
+
+/**
  * Implementation of hook_nodeapi().
  */
 function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   switch ($op) {
     case 'view':
-      // abort unless we are viewing full page
-      if (!$page) {
-        break;
+      // abort unless we are viewing node by itself on page
+      if ($page) {
+        if (variable_get("galleria_$node->type", 0) == 1 && galleria_is_valid($node)) {
+          // this is a galleria node, so perform modifications!
+          galleria_includes();
+          unset($node->content['files']);
+          $node->content['galleria']['#value'] = theme('galleria', $node);
+          $node->content['galleria']['#weight'] = module_exists('content') ? content_extra_field_weight($node->type, "galleria") : -10;
+        }
       }
-
-      if (variable_get("galleria_$node->type", 0) == 0) {
-        break;
+      else {
+        drupal_set_message(t('Gallerias only display when viewing a node by itself on the page.'), 'warning');
       }
-
-      if (!galleria_is_valid($node)) {
-        drupal_set_message(t('Galleria is not valid.'), 'error');
-        break;
-      }
-
-      // this is a galleria node, so perform modifications!
-      _galleria_includes();
-      unset($node->content['files']);
-      $node->content['galleria']['#value'] = theme('galleria', $node);
-      $node->content['galleria']['#weight'] = -10;
-      break;
   }
 }
 
@@ -192,12 +220,11 @@ function theme_galleria_lightbox_link($nid, $width, $height, $text) {
 function template_preprocess_galleria(&$vars) {
   $node = $vars['node'];
   $files = $node->files;
-  $captions = $node->field_captions;
   $images = array();
   $i = 0;
 
   foreach ($files as $file) {
-    $caption = is_array($captions[$i]) ? $captions[$i]['value'] : '';
+    $caption = $file->description != $file->filename ? $file->description : '';
     $images[] = array(
       'data' => theme('image', $file->filepath, $caption, $caption),
       'class' => $i == 0 ? 'active' : '',

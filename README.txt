@@ -32,15 +32,7 @@ This will give you an anchor link to the Galleria with node id "$nid". Clicking 
 Captions
 ---------------------
 
-To add a caption to each image, install the CCK module from http://drupal.org/project/cck, and then add a text field to your Galleria node type, with the properties:
-
-Label: Captions
-Name: field_captions
-Type: Text
-Form element: Text field
-Number of values: Unlimited
-
-Then you can add captions to each image. They will be chosen in order, i.e. the first caption will apply to the first image in the list.
+To add a caption to each image, you can set the "Description" of each file to the caption you want. This is done on the node edit page.
 
 Customisation
 ---------------------

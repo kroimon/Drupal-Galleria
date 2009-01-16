@@ -1,9 +1,11 @@
 // $Id$
 
-Galleria 1.0, 2008--
+Galleria 1.0-beta2, 2009-01-16
 ----------------------
 - [#347903] - caption bugfix, changed 'safe' to 'value'.
-
+- [#349353] - fixed up galleria validation.
+- [#359710] - Display something on the teaser view of a Galleria.
+- [#348432] - Adjust weight of Galleria in CCK settings.
 
 Galleria 1.0-beta1, 2008-12-12
 ----------------------
