@@ -25,9 +25,15 @@ Lightbox support
 
 You can have your Galleria open inside a lightbox. Start by downloading and installing the Lightbox2 module from http://drupal.org/project/lightbox2. Then use the following Galleria theme function:
 
-theme('galleria_lightbox_link', $nid, $width, $height, $text);
+<?php print theme('galleria_lightbox_link', $nid, $width, $height, $text); ?>
 
-This will give you an anchor link to the Galleria with node id "$nid". Clicking the link opens a lightbox containing the Galleria. This is done by requesting an iFrame from the module.
+This will give you an anchor link to the Galleria with node id "$nid". Clicking the link opens a lightbox containing the Galleria.
+
+Example: assume you have a Galleria with a node id of 12. You would go to whereever you want your link to this Lightbox-Galleria to be, and insert the following code:
+
+<?php print theme('galleria_lightbox_link', 12, 800, 600, 'Click here for the Gallery'); ?>
+
+This will give you an 800x600 lightbox with the contents of node 12's Galleria in it!
 
 Captions
 ---------------------

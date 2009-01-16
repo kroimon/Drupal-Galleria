@@ -6,6 +6,11 @@ Galleria 1.0-beta2, 2009-01-16
 - [#349353] - fixed up galleria validation.
 - [#359710] - Display something on the teaser view of a Galleria.
 - [#348432] - Adjust weight of Galleria in CCK settings.
+- [#350519] - Change from iFrame to HTML.
+- [#349138] - Settings configuration forms implemented.
+- [#356700] - Better caption support.
+- [#357116] - Lightbox integration bug.
+- [#359833] - Galleria uninstall function.
 
 Galleria 1.0-beta1, 2008-12-12
 ----------------------

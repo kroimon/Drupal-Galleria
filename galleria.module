@@ -14,6 +14,11 @@ function galleria_includes() {
   drupal_add_css($modulepath . '/inc/galleria.css');
   drupal_add_js($modulepath . '/inc/jquery.galleria.js');
   drupal_add_js($modulepath . '/inc/galleria.js');
+
+  $settings = array(
+    'thumb_opacity' => variable_get('galleria_thumb_opacity', 0.3),
+  );
+  drupal_add_js($settings, 'setting');
 }
 
 /**
@@ -92,67 +97,64 @@ function galleria_theme() {
 }
 
 /**
+ * Implementation of hook_perm().
+ */
+function galleria_perm() {
+  return array('administer galleria');
+}
+
+/**
  * Implementation of hook_menu().
  */
 function galleria_menu() {
-  // add callback so that going to example.com/galleria/nid will return just
-  // galleria and no sidebars or any of that. Used for displaying inside a
-  // lightbox (iframe).
-  $items['galleria'] = array(
-    'page callback' => 'galleria_iframe',
+  $items['galleria_html'] = array(
+    'page callback' => 'galleria_html',
     'access callback' => 'user_access',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/galleria'] = array(
+    'title' => 'Galleria settings',
+    'description' => 'Change the Galleria settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('galleria_admin_settings'),
+    'access arguments' => array('administer galleria'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'galleria.admin.inc',
   );
   return $items;
 }
 
 /**
- * Menu callback to create just the galleria HTML data that gets embedded in
- * a lightbox
+ * Menu callback to create just the HTML data that gets embedded in
+ * a lightbox.
  *
  * @param $nid
  *    node id to serve XML from
  */
-function galleria_iframe($nid = NULL) {
-  if (!is_numeric($nid)) {
-    return;
-  }
-  $node = node_load($nid);
-
-  if (!galleria_is_valid($node)) {
-    drupal_set_message(t('Galleria is not valid.'), 'error');
-    return drupal_not_found();
-  }
-
-  galleria_includes();
-  $output = theme('galleria', $node);
-  return $output;
-}
-
-/**
- * Preprocess page.
- */
-function galleria_preprocess_page(&$vars) {
-  $nid = arg(1);
-  if (is_numeric($nid) && arg(0) == 'galleria') {
+function galleria_html($nid = NULL) {
+  if (is_numeric($nid)) {
     $node = node_load($nid);
-    if (galleria_is_valid($node)) {
-      $vars['template_file'] = 'galleria_iframe';
+    // is this a galleria type?
+    if (variable_get("galleria_$node->type", 0) == 1) {
+      if (galleria_is_valid($node)) {
+
+        // build the galleria
+        galleria_includes();
+        $output = theme('galleria', $node);
+
+        // just blat it, short circuiting Drupal page load.
+        print $output;
+      }
+      else {
+        // don't bother setting error messages as this is done in the validation check
+        return drupal_not_found();
+      }
+    }
+    else {
+      drupal_set_message(t('Node type is not selected as a Galleria.'), 'error');
     }
   }
-}
-
-/**
- * Suggest to Drupal the location of the template file
- * http://11heavens.com/theming-Drupal-6-from-the-module-layer
- */
-function galleria_theme_registry_alter(&$theme_registry) {
-  $theme_hook = 'page'; // my hook name
-  // Get the path to this module
-  $modulepath = drupal_get_path('module', 'galleria');
-  // Add the module path on top in the array of paths
-  array_unshift($theme_registry[$theme_hook]['theme paths'], $modulepath);
 }
 
 /**
@@ -178,18 +180,19 @@ function galleria_content_extra_fields($type_name) {
 function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   switch ($op) {
     case 'view':
-      // abort unless we are viewing node by itself on page
-      if ($page) {
-        if (variable_get("galleria_$node->type", 0) == 1 && galleria_is_valid($node)) {
-          // this is a galleria node, so perform modifications!
-          galleria_includes();
-          unset($node->content['files']);
-          $node->content['galleria']['#value'] = theme('galleria', $node);
-          $node->content['galleria']['#weight'] = module_exists('content') ? content_extra_field_weight($node->type, "galleria") : -10;
+      if (variable_get("galleria_$node->type", 0) == 1) {
+        if ($page) {
+          if (galleria_is_valid($node)) {
+            // this is a galleria node, so perform modifications!
+            galleria_includes();
+            unset($node->content['files']);
+            $node->content['galleria']['#value'] = theme('galleria', $node);
+            $node->content['galleria']['#weight'] = module_exists('content') ? content_extra_field_weight($node->type, "galleria") : -10;
+          }
         }
-      }
-      else {
-        drupal_set_message(t('Gallerias only display when viewing a node by itself on the page.'), 'warning');
+        else {
+          drupal_set_message(t('Gallerias only display when viewing a node by itself on the page.'), 'warning');
+        }
       }
   }
 }
@@ -208,10 +211,11 @@ function theme_galleria_lightbox_link($nid, $width, $height, $text) {
     return;
   }
 
+  galleria_includes();
   $attribs = array(
-    'rel' => 'lightframe[|width:' . $width . 'px; height:' . $height . 'px;]',
+    'rel' => 'lightmodal[|width:' . $width . 'px; height:' . $height . 'px;]',
   );
-  return l($text, "galleria/$nid", array('attributes' => $attribs, 'html' => TRUE));
+  return l($text, "galleria_html/$nid", array('attributes' => $attribs, 'html' => TRUE));
 }
 
 /**
