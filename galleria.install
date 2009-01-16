@@ -1,0 +1,14 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function galleria_uninstall() {
+  variable_del('galleria_thumb_opacity');
+
+  $node_types = node_get_types('names');
+  foreach ($node_types as $type) {
+    variable_del("galleria_$type");
+  }
+}
