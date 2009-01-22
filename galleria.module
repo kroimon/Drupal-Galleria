@@ -10,15 +10,19 @@
  * Include necessary files for the galleria.
  */
 function galleria_includes() {
-  $modulepath = drupal_get_path('module', 'galleria');
-  drupal_add_css($modulepath . '/inc/galleria.css');
-  drupal_add_js($modulepath . '/inc/jquery.galleria.js');
-  drupal_add_js($modulepath . '/inc/galleria.js');
+  static $included = FALSE;
+  if (!$included) {
+    $modulepath = drupal_get_path('module', 'galleria');
+    drupal_add_css($modulepath . '/inc/galleria.css');
+    drupal_add_js($modulepath . '/inc/jquery.galleria.js');
+    drupal_add_js($modulepath . '/inc/galleria.js');
 
-  $settings = array(
-    'thumb_opacity' => variable_get('galleria_thumb_opacity', 0.3),
-  );
-  drupal_add_js($settings, 'setting');
+    $settings = array(
+      'thumb_opacity' => variable_get('galleria_thumb_opacity', 0.3),
+    );
+    drupal_add_js($settings, 'setting');
+    $included = TRUE;
+  }
 }
 
 /**

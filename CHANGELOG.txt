@@ -1,5 +1,9 @@
 // $Id$
 
+Galleria 1.0-xxxxx, xxxx-xx-xx
+----------------------
+- [#362501] - ensure include files are only added once.
+
 Galleria 1.0-beta2, 2009-01-16
 ----------------------
 - [#347903] - caption bugfix, changed 'safe' to 'value'.
