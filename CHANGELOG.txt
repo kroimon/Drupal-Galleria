@@ -1,6 +1,6 @@
 // $Id$
 
-Galleria 1.0-xxxxx, xxxx-xx-xx
+Galleria 1.0-beta3, 2009-02-27
 ----------------------
 - [#362501] - ensure include files are only added once.
 - [#385782] by smithn.nc: option to turn off warning message.
