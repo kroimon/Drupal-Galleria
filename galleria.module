@@ -233,10 +233,19 @@ function template_preprocess_galleria(&$vars) {
 
   foreach ($files as $file) {
     $caption = $file->description != $file->filename ? $file->description : '';
-    $images[] = array(
-      'data' => theme('image', $file->filepath, $caption, $caption),
-      'class' => $i == 0 ? 'active' : '',
-    );
+    if (module_exists('imagecache') && variable_get('galleria_imagecache_preset', '')) {
+      $images[] = array(
+        'data' => theme('imagecache', variable_get('galleria_imagecache_preset', ''), $file->filepath, $caption, $caption),
+        'class' => $i == 0 ? 'active' : '',
+      );
+    }
+    else {
+      $images[] = array(
+        'data' => theme('image', $file->filepath, $caption, $caption),
+        'class' => $i == 0 ? 'active' : '',
+      );
+    }
+
     $i++;
   }
 

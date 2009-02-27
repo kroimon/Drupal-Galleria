@@ -4,6 +4,7 @@ Galleria 1.0-xxxxx, xxxx-xx-xx
 ----------------------
 - [#362501] - ensure include files are only added once.
 - [#385782] by smithn.nc: option to turn off warning message.
+- [#350561] by smithn.nc, DRScales: imagecache integration.
 
 Galleria 1.0-beta2, 2009-01-16
 ----------------------
