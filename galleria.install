@@ -6,6 +6,7 @@
  */
 function galleria_uninstall() {
   variable_del('galleria_thumb_opacity');
+  variable_del('galleria_show_page_warning');
 
   $node_types = node_get_types('names');
   foreach ($node_types as $type) {

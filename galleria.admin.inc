@@ -22,5 +22,12 @@ function galleria_admin_settings() {
     '#description' => t('Value from 0 .. 1'),
   );
 
+  $form['galleria_show_page_warning'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Galleria node warning'),
+    '#default_value' => variable_get('galleria_show_page_warning', 1),
+    '#description' => t('Show warning when galleria node is not by itself on a page.'),
+  );
+
   return system_settings_form($form);
 }

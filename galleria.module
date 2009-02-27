@@ -194,7 +194,7 @@ function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
             $node->content['galleria']['#weight'] = module_exists('content') ? content_extra_field_weight($node->type, "galleria") : -10;
           }
         }
-        else {
+        else if (variable_get('galleria_show_page_warning', 1)) {
           drupal_set_message(t('Gallerias only display when viewing a node by itself on the page.'), 'warning');
         }
       }
