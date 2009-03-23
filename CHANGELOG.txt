@@ -1,5 +1,9 @@
 // $Id$
 
+Galleria 6.x-1.x-dev
+----------------------
+- [410794] by FrancS: translate previous / next link.
+
 Galleria 1.0-beta3, 2009-02-27
 ----------------------
 - [#362501] - ensure include files are only added once.

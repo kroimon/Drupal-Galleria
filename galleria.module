@@ -245,7 +245,6 @@ function template_preprocess_galleria(&$vars) {
         'class' => $i == 0 ? 'active' : '',
       );
     }
-
     $i++;
   }
 
@@ -253,6 +252,6 @@ function template_preprocess_galleria(&$vars) {
     'class' => 'gallery clear-block',
   );
 
-  $vars['next_prev_links'] = '<a onclick="$.galleria.prev(); return false;" href="#"><< previous</a> | <a onclick="$.galleria.next(); return false;" href="#">next >></a>';
+  $vars['next_prev_links'] = '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>';
   $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs);
 }
