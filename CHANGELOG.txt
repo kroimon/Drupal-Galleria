@@ -4,6 +4,7 @@ Galleria 1.0-beta4, 2009-03-23
 ----------------------
 - [#410794] by FrancS: translate previous / next link.
 - [#404998] by Mark Theunissen, smithn.nc: imagecache for thumbnails.
+- [#372264] by Mark Theunissen: option to switch off all warning messages.
 
 Galleria 1.0-beta3, 2009-02-27
 ----------------------

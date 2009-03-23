@@ -38,7 +38,7 @@ function galleria_admin_settings() {
       '#options' => $presets,
       '#default_value' => variable_get('galleria_imagecache_preset', ''),
     );
-    
+
     $form['galleria_thumb_imagecache_preset'] = array(
       '#type' => 'select',
       '#title' => t('ImageCache thumbnail preset'),
@@ -52,9 +52,9 @@ function galleria_admin_settings() {
 
   $form['galleria_show_page_warning'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Galleria node warning'),
+    '#title' => t('Galleria warnings'),
     '#default_value' => variable_get('galleria_show_page_warning', 1),
-    '#description' => t('Show warning when galleria node is not by itself on a page.'),
+    '#description' => t('Show warning and error messages on Gallerias if they aren\'t configured properly.'),
   );
 
   return system_settings_form($form);
