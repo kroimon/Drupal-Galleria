@@ -34,9 +34,16 @@ function galleria_admin_settings() {
     }
     $form['galleria_imagecache_preset'] = array(
       '#type' => 'select',
-      '#title' => t('ImageCache preset'),
+      '#title' => t('ImageCache gallery preset'),
       '#options' => $presets,
       '#default_value' => variable_get('galleria_imagecache_preset', ''),
+    );
+    
+    $form['galleria_thumb_imagecache_preset'] = array(
+      '#type' => 'select',
+      '#title' => t('ImageCache thumbnail preset'),
+      '#options' => $presets,
+      '#default_value' => variable_get('galleria_thumb_imagecache_preset', ''),
     );
   }
   else {

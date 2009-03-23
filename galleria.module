@@ -231,20 +231,44 @@ function template_preprocess_galleria(&$vars) {
   $images = array();
   $i = 0;
 
+  $imagecache_exists = module_exists('imagecache');
+  $img_preset = variable_get('galleria_imagecache_preset', '');
+  $thumb_preset = variable_get('galleria_thumb_imagecache_preset', '');
+
   foreach ($files as $file) {
     $caption = $file->description != $file->filename ? $file->description : '';
-    if (module_exists('imagecache') && variable_get('galleria_imagecache_preset', '')) {
-      $images[] = array(
-        'data' => theme('imagecache', variable_get('galleria_imagecache_preset', ''), $file->filepath, $caption, $caption),
-        'class' => $i == 0 ? 'active' : '',
-      );
+    $url = $file->filepath;
+
+    if ($imagecache_exists && $thumb_preset) {
+      $thumb = theme('imagecache', $thumb_preset, $file->filepath, $caption, $caption);
+    }
+
+    if ($imagecache_exists && $img_preset) {
+      if ($thumb) {
+        // Preset for both thumbnail and gallery image
+        $image = l($thumb, imagecache_create_url($img_preset, $file->filepath), array('html' => TRUE, 'attributes' => array('title' => $caption)));
+      }
+      else {
+        // Preset for only the gallery image
+        $image = theme('imagecache', $img_preset, $file->filepath, $caption, $caption);
+      }
     }
     else {
-      $images[] = array(
-        'data' => theme('image', $file->filepath, $caption, $caption),
-        'class' => $i == 0 ? 'active' : '',
-      );
+      if ($thumb) {
+        // Preset for only the thumbnail image
+        $image = l($thumb, $file->filepath, array('html' => TRUE, 'attributes' => array('title' => $caption)));
+      }
+      else {
+        // No presets selected
+        $image = theme('image', $file->filepath, $caption, $caption);
+      }
     }
+
+    $images[] = array(
+      'data' => $image,
+      'class' => $i == 0 ? 'active' : '',
+    );
+
     $i++;
   }
 
