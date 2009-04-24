@@ -1,12 +1,12 @@
 /**
  * Galleria (http://monc.se/kitchen)
  *
- * Galleria is a javascript image gallery written in jQuery. 
- * It loads the images one by one from an unordered list and displays thumbnails when each image is loaded. 
- * It will create thumbnails for you if you choose so, scaled or unscaled, 
+ * Galleria is a javascript image gallery written in jQuery.
+ * It loads the images one by one from an unordered list and displays thumbnails when each image is loaded.
+ * It will create thumbnails for you if you choose so, scaled or unscaled,
  * centered and cropped inside a fixed thumbnail box defined by CSS.
- * 
- * The core of Galleria lies in it's smart preloading behaviour, snappiness and the fresh absence 
+ *
+ * The core of Galleria lies in it's smart preloading behaviour, snappiness and the fresh absence
  * of obtrusive design elements. Use it as a foundation for your custom styled image gallery.
  *
  * MAJOR CHANGES v.FROM 0.9
@@ -15,7 +15,7 @@
  * onImage and onThumb functions lets you customize the behaviours of the images on the site
  *
  * Tested in Safari 3, Firefox 2, MSIE 6, MSIE 7, Opera 9
- * 
+ *
  * Version 1.0
  * Februari 21, 2008
  *
@@ -30,7 +30,7 @@ var $$;
 
 
 /**
- * 
+ *
  * @desc Convert images from a simple html <ul> into a thumbnail gallery
  * @author David Hellsing
  * @version 1.0
@@ -39,7 +39,7 @@ var $$;
  * @type jQuery
  *
  * @cat plugins/Media
- * 
+ *
  * @example $('ul.gallery').galleria({options});
  * @desc Create a a gallery from an unordered list of images with thumbnails
  * @options
@@ -55,13 +55,13 @@ var $$;
 **/
 
 $$ = $.fn.galleria = function($options) {
-	
+
 	// check for basic CSS support
 	if (!$$.hasCSS()) { return false; }
-	
+
 	// init the modified history object
 	$.historyInit($$.onPageLoad);
-	
+
 	// set default options
 	var $defaults = {
 		insert      : '.galleria_container',
@@ -70,87 +70,87 @@ $$ = $.fn.galleria = function($options) {
 		onImage     : function(image,caption,thumb) {},
 		onThumb     : function(thumb) {}
 	};
-	
+
 
 	// extend the options
 	var $opts = $.extend($defaults, $options);
-	
+
 	// bring the options to the galleria object
 	for (var i in $opts) {
 		if (i) {
 			$.galleria[i]  = $opts[i];
 		}
 	}
-	
+
 	// if no insert selector, create a new division and insert it before the ul
-	var _insert = ( $($opts.insert).is($opts.insert) ) ? 
-		$($opts.insert) : 
+	var _insert = ( $($opts.insert).is($opts.insert) ) ?
+		$($opts.insert) :
 		jQuery(document.createElement('div')).insertBefore(this);
-		
+
 	// create a wrapping div for the image
 	var _div = $(document.createElement('div')).addClass('galleria_wrapper');
-	
+
 	// create a caption span
 	var _span = $(document.createElement('span')).addClass('caption');
-	
+
 	// inject the wrapper in in the insert selector
 	_insert.addClass('galleria_container').append(_div).append(_span);
-	
+
 	//-------------
-	
+
 	return this.each(function(){
-		
+
 		// add the Galleria class
 		$(this).addClass('galleria');
-		
+
 		// loop through list
 		$(this).children('li').each(function(i) {
-			
+
 			// bring the scope
 			var _container = $(this);
-			                
+
 			// build element specific options
 			var _o = $.meta ? $.extend({}, $opts, _container.data()) : $opts;
-			
+
 			// remove the clickNext if image is only child
 			_o.clickNext = $(this).is(':only-child') ? false : _o.clickNext;
-			
+
 			// try to fetch an anchor
 			var _a = $(this).find('a').is('a') ? $(this).find('a') : false;
-			
+
 			// reference the original image as a variable and hide it
 			var _img = $(this).children('img').css('display','none');
-			
+
 			// extract the original source
 			var _src = _a ? _a.attr('href') : _img.attr('src');
-			
+
 			// find a title
 			var _title = _a ? _a.attr('title') : _img.attr('title');
-			
-			// create loader image            
+
+			// create loader image
 			var _loader = new Image();
-			
+
 			// check url and activate container if match
 			if (_o.history && (window.location.hash && window.location.hash.replace(/\#/,'') == _src)) {
 				_container.siblings('.active').removeClass('active');
 				_container.addClass('active');
 			}
-		
+
 			// begin loader
 			$(_loader).load(function () {
-				
+
 				// try to bring the alt
 				$(this).attr('alt',_img.attr('alt'));
-				
+
 				//-----------------------------------------------------------------
 				// the image is loaded, let's create the thumbnail
-				
-				var _thumb = _a ? 
+
+				var _thumb = _a ?
 					_a.find('img').addClass('thumb noscale').css('display','none') :
 					_img.clone(true).addClass('thumb').css('display','none');
-				
+
 				if (_a) { _a.replaceWith(_thumb); }
-				
+
 				if (!_thumb.hasClass('noscale')) { // scaled tumbnails!
 					var w = Math.ceil( _img.width() / _img.height() * _container.height() );
 					var h = Math.ceil( _img.height() / _img.width() * _container.width() );
@@ -163,23 +163,23 @@ $$ = $.fn.galleria = function($options) {
 					// a tiny timer fixed the width/height
 					window.setTimeout(function() {
 						_thumb.css({
-							marginLeft: -( _thumb.width() - _container.width() )/2, 
+							marginLeft: -( _thumb.width() - _container.width() )/2,
 							marginTop:  -( _thumb.height() - _container.height() )/2
 						});
 					}, 1);
 				}
-				
+
 				// add the rel attribute
 				_thumb.attr('rel',_src);
-				
+
 				// add the title attribute
 				_thumb.attr('title',_title);
-				
+
 				// add the click functionality to the _thumb
 				_thumb.click(function() {
 					$.galleria.activate(_src);
 				});
-				
+
 				// hover classes for IE6
 				_thumb.hover(
 					function() { $(this).addClass('hover'); },
@@ -192,29 +192,29 @@ $$ = $.fn.galleria = function($options) {
 
 				// prepend the thumbnail in the container
 				_container.prepend(_thumb);
-				
+
 				// show the thumbnail
 				_thumb.css('display','block');
-				
+
 				// call the onThumb function
 				_o.onThumb(jQuery(_thumb));
-				
+
 				// check active class and activate image if match
 				if (_container.hasClass('active')) {
 					$.galleria.activate(_src);
 					//_span.text(_title);
 				}
-				
+
 				//-----------------------------------------------------------------
-				
+
 				// finally delete the original image
 				_img.remove();
-				
+
 			}).error(function () {
-				
+
 				// Error handling
 			    _container.html('<span class="error" style="color:red">Error loading image: '+_src+'</span>');
-			
+
 			}).attr('src', _src);
 		});
 	});
@@ -232,7 +232,7 @@ $$.nextSelector = function(selector) {
 	return $(selector).is(':last-child') ?
 		   $(selector).siblings(':first-child') :
     	   $(selector).next();
-    	   
+
 };
 
 /**
@@ -247,7 +247,7 @@ $$.previousSelector = function(selector) {
 	return $(selector).is(':first-child') ?
 		   $(selector).siblings(':last-child') :
     	   $(selector).prev();
-    	   
+
 };
 
 /**
@@ -280,25 +280,25 @@ $$.hasCSS = function()  {
  *
 **/
 
-$$.onPageLoad = function(_src) {	
-	
+$$.onPageLoad = function(_src) {
+
 	// get the wrapper
 	var _wrapper = $('.galleria_wrapper');
-	
+
 	// get the thumb
-	var _thumb = $('.galleria img[@rel="'+_src+'"]');
-	
+	var _thumb = $('.galleria img[rel="'+_src+'"]');
+
 	if (_src) {
-		
+
 		// new hash location
 		if ($.galleria.history) {
 			window.location = window.location.href.replace(/\#.*/,'') + '#' + _src;
 		}
-		
+
 		// alter the active classes
 		_thumb.parents('li').siblings('.active').removeClass('active');
 		_thumb.parents('li').addClass('active');
-	
+
 		// define a new image
 		var _img   = $(new Image()).attr('src',_src).addClass('replaced');
 
@@ -307,27 +307,27 @@ $$.onPageLoad = function(_src) {
 
 		// insert the caption
 		_wrapper.siblings('.caption').text(_thumb.attr('title'));
-		
+
 		// fire the onImage function to customize the loaded image's features
 		$.galleria.onImage(_img,_wrapper.siblings('.caption'),_thumb);
-		
+
 		// add clickable image helper
 		if($.galleria.clickNext) {
 			_img.css('cursor','pointer').click(function() { $.galleria.next(); });
 		}
-		
+
 	} else {
-		
+
 		// clean up the container if none are active
 		_wrapper.siblings().andSelf().empty();
-		
+
 		// remove active classes
 		$('.galleria li.active').removeClass('active');
 	}
 
 	// place the source in the galleria.current variable
 	$.galleria.current = _src;
-	
+
 };
 
 /**
@@ -348,7 +348,7 @@ $$.onPageLoad = function(_src) {
 $.extend({galleria : {
 	current : '',
 	onImage : function(){},
-	activate : function(_src) { 
+	activate : function(_src) {
 		if ($.galleria.history) {
 			$.historyLoad(_src);
 		} else {
@@ -356,11 +356,11 @@ $.extend({galleria : {
 		}
 	},
 	next : function() {
-		var _next = $($$.nextSelector($('.galleria img[@rel="'+$.galleria.current+'"]').parents('li'))).find('img').attr('rel');
+		var _next = $($$.nextSelector($('.galleria img[rel="'+$.galleria.current+'"]').parents('li'))).find('img').attr('rel');
 		$.galleria.activate(_next);
 	},
 	prev : function() {
-		var _prev = $($$.previousSelector($('.galleria img[@rel="'+$.galleria.current+'"]').parents('li'))).find('img').attr('rel');
+		var _prev = $($$.previousSelector($('.galleria img[rel="'+$.galleria.current+'"]').parents('li'))).find('img').attr('rel');
 		$.galleria.activate(_prev);
 	}
 }
@@ -391,20 +391,20 @@ $.extend({galleria : {
 
 jQuery.extend({
 	historyCurrentHash: undefined,
-	
+
 	historyCallback: undefined,
-	
+
 	historyInit: function(callback){
 		jQuery.historyCallback = callback;
 		var current_hash = location.hash;
-		
+
 		jQuery.historyCurrentHash = current_hash;
 		if(jQuery.browser.msie) {
 			// To stop the callback firing twice during initilization if no hash present
 			if (jQuery.historyCurrentHash === '') {
 			jQuery.historyCurrentHash = '#';
 		}
-		
+
 			// add hidden iframe for IE
 			$("body").prepend('<iframe id="jQuery_history" style="display: none;"></iframe>');
 			var ihistory = $("#jQuery_history")[0];
@@ -418,21 +418,21 @@ jQuery.extend({
 			jQuery.historyBackStack = [];
 			jQuery.historyBackStack.length = history.length;
 			jQuery.historyForwardStack = [];
-			
+
 			jQuery.isFirst = true;
 		}
 		jQuery.historyCallback(current_hash.replace(/^#/, ''));
 		setInterval(jQuery.historyCheck, 100);
 	},
-	
+
 	historyAddHistory: function(hash) {
 		// This makes the looping function do something
 		jQuery.historyBackStack.push(hash);
-		
+
 		jQuery.historyForwardStack.length = 0; // clear forwardStack (true click occured)
 		this.isFirst = true;
 	},
-	
+
 	historyCheck: function(){
 		if(jQuery.browser.msie) {
 			// On IE, check for location.hash of iframe
@@ -440,16 +440,16 @@ jQuery.extend({
 			var iframe = ihistory.contentDocument || ihistory.contentWindow.document;
 			var current_hash = iframe.location.hash;
 			if(current_hash != jQuery.historyCurrentHash) {
-			
+
 				location.hash = current_hash;
 				jQuery.historyCurrentHash = current_hash;
 				jQuery.historyCallback(current_hash.replace(/^#/, ''));
-				
+
 			}
 		} else if ($.browser.safari) {
 			if (!jQuery.dontCheck) {
 				var historyDelta = history.length - jQuery.historyBackStack.length;
-				
+
 				if (historyDelta) { // back or forward button has been pushed
 					jQuery.isFirst = false;
 					var i;
@@ -492,7 +492,7 @@ jQuery.extend({
 	},
 	historyLoad: function(hash){
 		var newhash;
-		
+
 		if (jQuery.browser.safari) {
 			newhash = hash;
 		}
@@ -501,7 +501,7 @@ jQuery.extend({
 			location.hash = newhash;
 		}
 		jQuery.historyCurrentHash = newhash;
-		
+
 		if(jQuery.browser.msie) {
 			var ihistory = $("#jQuery_history")[0];
 			var iframe = ihistory.contentWindow.document;
@@ -514,7 +514,7 @@ jQuery.extend({
 			jQuery.dontCheck = true;
 			// Manually keep track of the history values for Safari
 			this.historyAddHistory(hash);
-			
+
 			// Wait a while before allowing checking so that Safari has time to update the "history" object
 			// correctly (otherwise the check loop would detect a false change in hash).
 			var fn = function() {jQuery.dontCheck = false;};

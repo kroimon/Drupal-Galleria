@@ -1,5 +1,9 @@
 // $Id$
 
+Galleria 1.0-beta5, xxxx-x-x
+----------------------
+- [#431108] by prof1337: compatibility with jQuery 1.3.
+
 Galleria 1.0-beta4, 2009-03-23
 ----------------------
 - [#410794] by FrancS: translate previous / next link.
