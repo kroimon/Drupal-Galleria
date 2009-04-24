@@ -237,6 +237,7 @@ function theme_galleria_lightbox_link($nid, $width, $height, $text) {
 function template_preprocess_galleria(&$vars) {
   $node = $vars['node'];
   $files = $node->files;
+  $filecount = count($files);
   $images = array();
   $i = 0;
 
@@ -285,6 +286,6 @@ function template_preprocess_galleria(&$vars) {
     'class' => 'gallery clear-block',
   );
 
-  $vars['next_prev_links'] = '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>';
+  $vars['next_prev_links'] = ($filecount > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
   $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs);
 }

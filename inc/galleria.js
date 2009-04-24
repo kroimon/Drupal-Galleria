@@ -12,16 +12,24 @@ var options = {
     // fetch the thumbnail container
     var _li = thumb.parents('li');
 
-    // fade out inactive thumbnail
-    _li.siblings().children('img.selected').fadeTo(500, Drupal.settings.thumb_opacity);
+    // if there is only one thumbnail, hide it and
+    // turn off the clickNext action on the displayed image
+    if (_li.siblings('li').length == 0) {
+      _li.css('display','none');
+      $.galleria.clickNext = false;
+    }
+    else {
+      // fade out inactive thumbnail
+      _li.siblings().children('img.selected').fadeTo(500, Drupal.settings.thumb_opacity);
 
-    // fade in active thumbnail
-    thumb.fadeTo('fast',1).addClass('selected');
+      // fade in active thumbnail
+      thumb.fadeTo('fast',1).addClass('selected');
 
-    // add a title for the clickable image
-    image.attr('title','Next image >>');
+      // add a title for the clickable image
+      image.attr('title','Next image >>');
 
-    $('.galleria-nav').show();
+      $('.galleria-nav').show();
+    }
   },
 
   onThumb : function(thumb) {
