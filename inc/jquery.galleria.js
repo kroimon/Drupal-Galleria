@@ -300,21 +300,25 @@ $$.onPageLoad = function(_src) {
 		_thumb.parents('li').addClass('active');
 
 		// define a new image
-		var _img   = $(new Image()).attr('src',_src).addClass('replaced');
+ 		var _img   = $(new Image()).addClass('replaced');
 
-		// empty the wrapper and insert the new image
-		_wrapper.empty().append(_img);
+ 		_img.load(function() {
+ 		  // empty the wrapper and insert the new image
+ 		  _wrapper.empty().append(_img);
 
-		// insert the caption
-		_wrapper.siblings('.caption').text(_thumb.attr('title'));
+ 		  // insert the caption
+ 		  _wrapper.siblings('.caption').text(_thumb.attr('title'));
 
-		// fire the onImage function to customize the loaded image's features
-		$.galleria.onImage(_img,_wrapper.siblings('.caption'),_thumb);
+ 		  // fire the onImage function to customize the loaded image's features
+ 		  $.galleria.onImage(_img,_wrapper.siblings('.caption'),_thumb);
 
-		// add clickable image helper
-		if($.galleria.clickNext) {
-			_img.css('cursor','pointer').click(function() { $.galleria.next(); });
-		}
+ 		  // add clickable image helper
+ 		  if($.galleria.clickNext) {
+        _img.css('cursor','pointer').click(function() { $.galleria.next(); });
+ 		  }
+ 		});
+
+ 		_img.attr('src',_src);
 
 	} else {
 
