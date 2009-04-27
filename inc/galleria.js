@@ -60,6 +60,9 @@ Drupal.behaviors.initGalleria = function(context) {
 
   // when the ajax call is complete, load galleria - used when viewing in a lightbox!
   $('body').bind("ajaxComplete", function() {
-    $('ul.gallery').galleria(options);
+    // check that a lightbox with a loaded image list exists
+    if ($('#lightbox ul.gallery').length > 0) {
+      $('#lightbox ul.gallery').galleria(options);
+    }
   });
 };

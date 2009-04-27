@@ -7,6 +7,7 @@ Galleria 1.0-beta5, xxxx-x-x
 - [#444974] by prof1337, Mark Theunissen: Allow non-image uploads on Galleria-enabled nodes.
 - [#444948] by prof1337: Galleria flickers when changing images.
 - [#436354] by prof1337: Galleria images load full size and stack down the page.
+- [#444566] by prof1337: Compatibility with FCKEditor module.
 
 Galleria 1.0-beta4, 2009-03-23
 ----------------------
