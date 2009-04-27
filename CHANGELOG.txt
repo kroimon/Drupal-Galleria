@@ -6,6 +6,7 @@ Galleria 1.0-beta5, xxxx-x-x
 - [#425840] by prof1337: fix display if only one image in galleria.
 - [#444974] by prof1337, Mark Theunissen: Allow non-image uploads on Galleria-enabled nodes.
 - [#444948] by prof1337: Galleria flickers when changing images.
+- [#436354] by prof1337: Galleria images load full size and stack down the page.
 
 Galleria 1.0-beta4, 2009-03-23
 ----------------------
