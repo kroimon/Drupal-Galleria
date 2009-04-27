@@ -1,6 +1,7 @@
 // $Id$
 
 var options = {
+  insert : '#main-image',
   onImage : function(image, caption, thumb) {
     // let's add some image effects for demonstration purposes
     // fade in the image & caption

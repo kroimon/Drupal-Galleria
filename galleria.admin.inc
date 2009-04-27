@@ -22,6 +22,16 @@ function galleria_admin_settings() {
     '#description' => t('Value from 0 .. 1'),
   );
 
+  $form['galleria_thumb_location'] = array(
+    '#type' => 'select',
+    '#title' => t('Location of thumbnails'),
+    '#options' => array(
+      'above' => 'Above main image',
+      'below' => 'Below main image',
+    ),
+    '#default_value' => variable_get('galleria_thumb_location', 'below'),
+  );
+
   // Code based on from Taxonomy Image's ImageCache support
   // If ImageCache module is found, add its presets as available options
   // for how to display the image.

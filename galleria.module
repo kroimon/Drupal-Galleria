@@ -297,6 +297,12 @@ function template_preprocess_galleria(&$vars) {
     'class' => 'gallery clear-block',
   );
 
+  if (variable_get('galleria_thumb_location', 'below') == 'above') {
+    $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs) . '<div id="main-image"></div>';
+  }
+  else {
+    $vars['gallery'] = '<div id="main-image"></div>' . theme('item_list', $images, NULL, 'ul', $attribs);
+  }
+
   $vars['next_prev_links'] = ($filecount > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
-  $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs);
 }
