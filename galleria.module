@@ -238,7 +238,7 @@ function template_preprocess_galleria(&$vars) {
   $allowed_extensions = explode(',', GALLERIA_ALLOWED_EXT);;
   $node = $vars['node'];
   $files = $node->files;
-  $filecount = count($files);
+  $imagecount = 0;
   $images = array();
   $i = 0;
 
@@ -257,6 +257,7 @@ function template_preprocess_galleria(&$vars) {
     }
 
     // this is an image, so process it
+    ++$imagecount;
     $caption = $file->description != $file->filename ? $file->description : '';
     $url = $file->filepath;
 
@@ -304,5 +305,5 @@ function template_preprocess_galleria(&$vars) {
     $vars['gallery'] = '<div id="main-image"></div>' . theme('item_list', $images, NULL, 'ul', $attribs);
   }
 
-  $vars['next_prev_links'] = ($filecount > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
+  $vars['next_prev_links'] = ($imagecount > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
 }
