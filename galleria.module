@@ -171,10 +171,10 @@ function galleria_html($nid = NULL) {
 }
 
 /**
-* Implementation of hook_content_extra_fields() in content.module.
-*
-* CCK hook to allow sorting of the gallery display.
-*/
+ * Implementation of hook_content_extra_fields().
+ *
+ * CCK hook to allow sorting of the gallery display (from content.module).
+ */
 function galleria_content_extra_fields($type_name) {
   if (!empty($type_name) && variable_get("galleria_$type_name", 0) == 1) {
     return array(
