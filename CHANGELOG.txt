@@ -9,6 +9,7 @@ Galleria 1.0-beta5, xxxx-x-x
 - [#436354] by prof1337: Galleria images load full size and stack down the page.
 - [#444566] by prof1337: Compatibility with FCKEditor module.
 - [#417756] by prof1337: Option to display thumbnails above or below image.
+- [#342708] by maulwuff, prof1337, Mark Theunissen, mehmeta: CCK imagefield support.
 
 Galleria 1.0-beta4, 2009-03-23
 ----------------------

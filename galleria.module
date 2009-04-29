@@ -101,10 +101,16 @@ function galleria_theme() {
   return array(
     'galleria' => array(
       'template' => 'galleria',
-      'arguments' => array('node' => NULL),
+      'arguments' => array('images' => NULL),
     ),
     'galleria_lightbox_link' => array(
       'arguments' => array('nid' => NULL),
+    ),
+    'galleria_formatter_imagefield_galleria' => array(
+      'arguments' => array('element' => NULL),
+    ),
+    'galleria_files' => array(
+      'arguments' => array('node' => NULL),
     ),
   );
 }
@@ -140,7 +146,7 @@ function galleria_menu() {
 
 /**
  * Menu callback to create just the HTML data that gets embedded in
- * a lightbox.
+ * a lightbox. Only supports attached files Gallerias, not imagefield ones.
  *
  * @param $nid
  *    node id to serve XML from
@@ -154,7 +160,7 @@ function galleria_html($nid = NULL) {
 
         // build the galleria
         galleria_includes();
-        $output = theme('galleria', $node);
+        $output = theme('galleria_files', $node);
 
         // just blat it, short circuiting Drupal page load.
         print $output;
@@ -174,6 +180,8 @@ function galleria_html($nid = NULL) {
  * Implementation of hook_content_extra_fields().
  *
  * CCK hook to allow sorting of the gallery display (from content.module).
+ * Only applies to Gallerias built from attached files. ImageField gallerias
+ * have their own built in mechanism.
  */
 function galleria_content_extra_fields($type_name) {
   if (!empty($type_name) && variable_get("galleria_$type_name", 0) == 1) {
@@ -189,6 +197,9 @@ function galleria_content_extra_fields($type_name) {
 
 /**
  * Implementation of hook_nodeapi().
+ *
+ * Creates Gallerias from attached files. CCK imagefield is done via an
+ * output formatter.
  */
 function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   switch ($op) {
@@ -198,9 +209,9 @@ function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
           if (galleria_is_valid($node)) {
             // this is a galleria node, so perform modifications!
             galleria_includes();
-            unset($node->content['files']);
-            $node->content['galleria']['#value'] = theme('galleria', $node);
+            $node->content['galleria']['#value'] = theme('galleria_files', $node);
             $node->content['galleria']['#weight'] = module_exists('content') ? content_extra_field_weight($node->type, "galleria") : -10;
+            unset($node->content['files']);
           }
         }
         else {
@@ -211,7 +222,8 @@ function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
 }
 
 /**
- * Theme the link that opens a lightbox with a galleria in it
+ * Theme the link that opens a lightbox with a Galleria in it. Currently only
+ * supports Gallerias built from attached files, not imagefield.
  */
 function theme_galleria_lightbox_link($nid, $width, $height, $text) {
   if (!is_numeric($nid) || !is_numeric($width) || !is_numeric($height)) {
@@ -232,22 +244,14 @@ function theme_galleria_lightbox_link($nid, $width, $height, $text) {
 }
 
 /**
- * Preprocess the galleria variables.
+ * Create a Galleria from the attached (upload module) files.
  */
-function template_preprocess_galleria(&$vars) {
-  $allowed_extensions = explode(',', GALLERIA_ALLOWED_EXT);;
-  $node = $vars['node'];
-  $files = $node->files;
-  $imagecount = 0;
+function theme_galleria_files($node) {
+  $allowed_extensions = explode(',', GALLERIA_ALLOWED_EXT);
+
   $images = array();
-  $i = 0;
-
-  $imagecache_exists = module_exists('imagecache');
-  $img_preset = variable_get('galleria_imagecache_preset', '');
-  $thumb_preset = variable_get('galleria_thumb_imagecache_preset', '');
-
-  foreach ($files as $file) {
-    // abort if this is not an image file
+  foreach ($node->files as $file) {
+    // filter out files that are not images
     $ext = strtolower(substr($file->filename, -4));
     if (substr($ext, 0, 1) == '.') {
       $ext = substr($ext, 1, 3);
@@ -255,40 +259,64 @@ function template_preprocess_galleria(&$vars) {
     if (!in_array($ext, $allowed_extensions)) {
       continue;
     }
+    $images[] = $file;
+  }
 
-    // this is an image, so process it
-    ++$imagecount;
-    $caption = $file->description != $file->filename ? $file->description : '';
-    $url = $file->filepath;
+  return theme('galleria', $images);
+}
+
+/**
+ * Implementation of template_preprocess_hook().
+ *
+ * Build a Galleria from an array of images. This is called in both cases
+ * (i.e. building Galleria from CCK imagefield or from attached files).
+ *
+ * @param $images
+ *   An array of file objects representing the images to be included in the Galleria
+ * @return $vars
+ *   Themed Galleria.
+ */
+function template_preprocess_galleria(&$vars) {
+  $images = $vars['images'];
+  $image_list = array();
+  $i = 0;
+
+  $imagecache_exists = module_exists('imagecache');
+  $img_preset = variable_get('galleria_imagecache_preset', '');
+  $thumb_preset = variable_get('galleria_thumb_imagecache_preset', '');
+
+  foreach ($images as $image) {
+    $caption = ($image->description != $image->filename) ? $image->description : '';
+    $filepath = $image->filepath;
 
     if ($imagecache_exists && $thumb_preset) {
-      $thumb = theme('imagecache', $thumb_preset, $file->filepath, $caption, $caption);
+      $thumb = theme('imagecache', $thumb_preset, $filepath, $caption, $caption);
     }
 
     if ($imagecache_exists && $img_preset) {
       if ($thumb) {
         // Preset for both thumbnail and gallery image
-        $image = l($thumb, imagecache_create_url($img_preset, $file->filepath), array('html' => TRUE, 'attributes' => array('title' => $caption)));
+        $image = l($thumb, imagecache_create_url($img_preset, $filepath), array('html' => TRUE, 'attributes' => array('title' => $caption)));
       }
       else {
         // Preset for only the gallery image
-        $image = theme('imagecache', $img_preset, $file->filepath, $caption, $caption);
+        $image = theme('imagecache', $img_preset, $filepath, $caption, $caption);
       }
     }
     else {
       if ($thumb) {
         // Preset for only the thumbnail image
-        $image = l($thumb, $file->filepath, array('html' => TRUE, 'attributes' => array('title' => $caption)));
+        $image = l($thumb, $filepath, array('html' => TRUE, 'attributes' => array('title' => $caption)));
       }
       else {
         // No presets selected
-        $image = theme('image', $file->filepath, $caption, $caption);
+        $image = theme('image', $filepath, $caption, $caption);
       }
     }
 
-    $images[] = array(
+    $image_list[] = array(
       'data' => $image,
-      'class' => $i == 0 ? 'active' : '',
+      'class' => ($i == 0) ? 'active' : '',
     );
 
     $i++;
@@ -299,11 +327,44 @@ function template_preprocess_galleria(&$vars) {
   );
 
   if (variable_get('galleria_thumb_location', 'below') == 'above') {
-    $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs) . '<div id="main-image"></div>';
+    $vars['gallery'] = theme('item_list', $image_list, NULL, 'ul', $attribs) . '<div id="main-image"></div>';
   }
   else {
-    $vars['gallery'] = '<div id="main-image"></div>' . theme('item_list', $images, NULL, 'ul', $attribs);
+    $vars['gallery'] = '<div id="main-image"></div>' . theme('item_list', $image_list, NULL, 'ul', $attribs);
   }
 
-  $vars['next_prev_links'] = ($imagecount > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
+  $vars['next_prev_links'] = ($i > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
+}
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function galleria_field_formatter_info() {
+  return array(
+    'imagefield_galleria' => array(
+      'label' => t('Galleria'),
+      'field types' => array('filefield'),
+      'multiple values' => CONTENT_HANDLE_MODULE,
+    ),
+  );
+}
+
+/**
+ * Theme CCK imagefield uploads in a Galleria
+ *
+ * @ingroup themeable
+ */
+function theme_galleria_formatter_imagefield_galleria($element) {
+  galleria_includes();
+
+  $images = array();
+  foreach (element_children($element) as $key) {
+    $images[] = (object) array(
+      'filepath' => $element[$key]['#item']['filepath'],
+      'filename' => $element[$key]['#item']['filename'],
+      'description' => $element[$key]['#item']['data']['description'],
+    );
+  }
+
+  return theme('galleria', $images);
 }
