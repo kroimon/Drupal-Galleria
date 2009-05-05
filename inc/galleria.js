@@ -1,6 +1,14 @@
 // $Id$
 
-var options = {
+/**
+ * Create a namespace.
+ */
+Drupal.galleria = {};
+
+/**
+ * Configuration options for the Galleria.
+ */
+Drupal.galleria.options = {
   insert : '#main-image',
   onImage : function(image, caption, thumb) {
     // let's add some image effects for demonstration purposes
@@ -30,6 +38,9 @@ var options = {
       image.attr('title','Next image >>');
 
       $('.galleria-nav').show();
+
+      // trigger the jCarousel to scroll to the current image's thumbnail
+      $('#main-image').trigger('img_change', [thumb.parent().attr('jcarouselindex')]);
     }
   },
 
@@ -54,16 +65,30 @@ var options = {
   history : false
 };
 
-// run Galleria in Drupal.behaviors
+/**
+ * jCarousel integration.
+ */
+Drupal.galleria.jcarousel_initCallback = function(carousel) {
+  jQuery('#main-image').bind('img_change', function(e, index) {
+    var num = parseInt(index);
+    carousel.scroll(num);
+    return false;
+  });
+};
+
+/**
+ * Attach the Galleria initialisation to Drupal.behaviors.
+ */
 Drupal.behaviors.initGalleria = function(context) {
   // init on plain gallerias
-  $('ul.gallery').galleria(options);
+  $('ul.gallery').galleria(Drupal.galleria.options);
 
-  // when the ajax call is complete, load galleria - used when viewing in a lightbox!
+  // when the ajax call is complete, load galleria. Used when viewing in a lightbox.
   $('body').bind("ajaxComplete", function() {
     // check that a lightbox with a loaded image list exists
     if ($('#lightbox ul.gallery').length > 0) {
-      $('#lightbox ul.gallery').galleria(options);
+      $('#lightbox ul.gallery').galleria(Drupal.galleria.options);
     }
   });
 };
+

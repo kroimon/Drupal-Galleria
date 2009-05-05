@@ -1,6 +1,6 @@
 // $Id$
 
-Galleria 1.0-beta5, xxxx-x-x
+Galleria 1.0, xxxx-x-x
 ----------------------
 - [#431108] by prof1337: compatibility with jQuery 1.3.
 - [#425840] by prof1337: fix display if only one image in galleria.
@@ -10,6 +10,7 @@ Galleria 1.0-beta5, xxxx-x-x
 - [#444566] by prof1337: Compatibility with FCKEditor module.
 - [#417756] by prof1337: Option to display thumbnails above or below image.
 - [#342708] by maulwuff, prof1337, Mark Theunissen, mehmeta: CCK imagefield support.
+- [#353642] by prof1337, Mark Theunissen: jCarousel support.
 
 Galleria 1.0-beta4, 2009-03-23
 ----------------------

@@ -28,7 +28,7 @@ function galleria_includes() {
 }
 
 /**
- * Helper to ensure file extension is an image
+ * Helper to ensure file extension is an image.
  */
 function galleria_validate_file_extensions($files) {
   $allowed_extensions = explode(',', GALLERIA_ALLOWED_EXT);
@@ -56,7 +56,7 @@ function galleria_set_message($message, $severity) {
 }
 
 /**
- * Check that the node is a valid Galleria
+ * Check that the node is a valid Galleria.
  */
 function galleria_is_valid($node) {
   $valid = FALSE;
@@ -334,6 +334,19 @@ function template_preprocess_galleria(&$vars) {
   }
 
   $vars['next_prev_links'] = ($i > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
+
+  // jCarousel integration setup
+  if (module_exists('jcarousel') && variable_get('galleria_jcarousel', 'enabled') == 'enabled') {
+    $options = array(
+      'vertical' => (variable_get('galleria_jcarousel_vertical', 'false') == 'true') ? TRUE : FALSE,
+      'visible' => variable_get('galleria_jcarousel_visible', '3'),
+      'scroll' => variable_get('galleria_jcarousel_scroll', '3'),
+      'animation' => variable_get('galleria_jcarousel_animation', 'fast'),
+      'wrap' => variable_get('galleria_jcarousel_wrap', 'null'),
+      'initCallback' => 'Drupal.galleria.jcarousel_initCallback',
+    );
+    jcarousel_add('.gallery', $options);
+  }
 }
 
 /**
@@ -350,7 +363,7 @@ function galleria_field_formatter_info() {
 }
 
 /**
- * Theme CCK imagefield uploads in a Galleria
+ * Theme CCK imagefield uploads in a Galleria.
  *
  * @ingroup themeable
  */
