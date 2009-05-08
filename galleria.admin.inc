@@ -147,6 +147,8 @@ function galleria_admin_settings() {
     drupal_set_message(t('If you install the jCarousel module, you will get extra options here for integration.'), 'status');
   }
 
+  drupal_set_message(t('To customize Galleria position on a page (e.g. if you want to have Galleria placed below the node body), install the CCK module and rearrange fields for the content type that has Galleria enabled.'), 'status');
+
   return system_settings_form($form);
 }
 

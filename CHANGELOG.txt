@@ -11,6 +11,7 @@ Galleria 1.0, xxxx-x-x
 - [#417756] by prof1337: Option to display thumbnails above or below image.
 - [#342708] by maulwuff, prof1337, Mark Theunissen, mehmeta: CCK imagefield support.
 - [#353642] by prof1337, Mark Theunissen: jCarousel support.
+- [#454078] by petrd: helpful message for rearranging fields.
 
 Galleria 1.0-beta4, 2009-03-23
 ----------------------
