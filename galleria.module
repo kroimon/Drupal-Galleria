@@ -86,10 +86,10 @@ function galleria_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == 'node_type_form' && isset($form['identity']['type'])) {
     $form['workflow']['galleria'] = array(
       '#type' => 'radios',
-      '#title' => t('Galleria'),
+      '#title' => t('Galleria from attachments'),
       '#default_value' => variable_get('galleria_'. $form['#node_type']->type, 0),
       '#options' => array(t('Disabled'), t('Enabled')),
-      '#description' => t('Convert this node type into a Galleria.')
+      '#description' => t('Convert attachments on this node type into Gallerias. You should not enable this if you are using a CCK ImageField for your Galleria.')
     );
   }
 }
