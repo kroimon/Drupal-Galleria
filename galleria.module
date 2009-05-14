@@ -21,6 +21,7 @@ function galleria_includes() {
 
     $settings = array(
       'thumb_opacity' => variable_get('galleria_thumb_opacity', 0.3),
+      'galleria_lightbox' => (module_exists('lightbox2') || module_exists('jlightbox')) ? variable_get('galleria_lightbox', 'none') : 'none',
     );
     drupal_add_js($settings, 'setting');
     $included = TRUE;
@@ -284,13 +285,15 @@ function template_preprocess_galleria(&$vars) {
   $imagecache_exists = module_exists('imagecache');
   $img_preset = variable_get('galleria_imagecache_preset', '');
   $thumb_preset = variable_get('galleria_thumb_imagecache_preset', '');
+  $lightbox_preset = variable_get('galleria_lightbox_preset', '');
 
   foreach ($images as $image) {
     $caption = ($image->description != $image->filename) ? $image->description : '';
     $filepath = $image->filepath;
+    $lightbox_url = ($imagecache_exists && $lightbox_preset) ? imagecache_create_url($lightbox_preset, $filepath) : url($filepath, array('absolute' => TRUE));
 
     if ($imagecache_exists && $thumb_preset) {
-      $thumb = theme('imagecache', $thumb_preset, $filepath, $caption, $caption);
+      $thumb = theme('imagecache', $thumb_preset, $filepath, $lightbox_url, $caption);
     }
 
     if ($imagecache_exists && $img_preset) {
@@ -300,7 +303,7 @@ function template_preprocess_galleria(&$vars) {
       }
       else {
         // Preset for only the gallery image
-        $image = theme('imagecache', $img_preset, $filepath, $caption, $caption);
+        $image = theme('imagecache', $img_preset, $filepath, $lightbox_url, $caption);
       }
     }
     else {
@@ -310,7 +313,7 @@ function template_preprocess_galleria(&$vars) {
       }
       else {
         // No presets selected
-        $image = theme('image', $filepath, $caption, $caption);
+        $image = theme('image', $filepath, $lightbox_url, $caption);
       }
     }
 

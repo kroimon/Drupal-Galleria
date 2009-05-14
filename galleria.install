@@ -21,6 +21,8 @@ function galleria_uninstall() {
   variable_del('galleria_jcarousel_scroll');
   variable_del('galleria_jcarousel_animation');
   variable_del('galleria_jcarousel_wrap');
+  variable_del('galleria_lightbox');
+  variable_del('galleria_lightbox_preset');
   $node_types = node_get_types('names');
   foreach ($node_types as $type) {
     variable_del("galleria_$type");

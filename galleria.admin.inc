@@ -13,6 +13,14 @@
  * @see system_settings_form()
  */
 function galleria_admin_settings() {
+  $form['galleria_help'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#title' => t('Help'),
+    '#description' => t('To customize Galleria position on a page (e.g. if you want to have Galleria placed below the node body), install the CCK module and rearrange fields for the content type that has Galleria enabled.'),
+  );
+
   $form['galleria_admin'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
@@ -44,9 +52,8 @@ function galleria_admin_settings() {
     '#description' => t('Show warning and error messages on Gallerias if they aren\'t configured properly.'),
   );
 
-  // Code based on from Taxonomy Image's ImageCache support
-  // If ImageCache module is found, add its presets as available options
-  // for how to display the image.
+  // ImageCache integration settings - setup ImageCache preset options.
+  // Code based on Taxonomy Image's ImageCache support.
   if (module_exists('imagecache')) {
     $raw_presets = imagecache_presets();
     $presets[''] = t('None');
@@ -54,11 +61,16 @@ function galleria_admin_settings() {
       $preset = $preset_info['presetname'];
       $presets[$preset] = $preset;
     }
-    $form['galleria_imagecache'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#title' => t('ImageCache integration')
-    );
+  }
+
+  $form['galleria_imagecache'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#title' => t('ImageCache integration'),
+  );
+
+  if (module_exists('imagecache')) {
+    $form['galleria_imagecache']['#description'] = t('Galleria can integrate with the ImageCache module to control the appearance of uploaded images and their thumbnails.');
 
     $form['galleria_imagecache']['galleria_imagecache_preset'] = array(
       '#type' => 'select',
@@ -75,16 +87,18 @@ function galleria_admin_settings() {
     );
   }
   else {
-    drupal_set_message(t('If you install the imagecache module, you will get extra options here for integration.'), 'status');
+    $form['galleria_imagecache']['#description'] = '<em>' . t('Install the ImageCache module to control the appearance of uploaded images and their thumbnails.') . '</em>';
   }
 
   // jCarousel integration settings.
+  $form['galleria_jcarousel'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#title' => t('jCarousel integration'),
+  );
+
   if (module_exists('jcarousel')) {
-    $form['galleria_jcarousel'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#title' => t('jCarousel integration')
-    );
+    $form['galleria_jcarousel']['#description'] = t('Galleria can integrate with the jCarousel module to display thumbnails in a scrolling carousel.');
 
     $form['galleria_jcarousel']['galleria_jcarousel'] = array(
       '#type' => 'select',
@@ -144,10 +158,48 @@ function galleria_admin_settings() {
     );
   }
   else {
-    drupal_set_message(t('If you install the jCarousel module, you will get extra options here for integration.'), 'status');
+    $form['galleria_jcarousel']['#description'] = '<em>' . t('Install the jCarousel module to display Galleria thumbnails in a scrolling carousel.') . '</em>';
   }
 
-  drupal_set_message(t('To customize Galleria position on a page (e.g. if you want to have Galleria placed below the node body), install the CCK module and rearrange fields for the content type that has Galleria enabled.'), 'status');
+  // Lightbox2 / jQuery Lightbox integration settings.
+  $form['galleria_lightbox'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#title' => t('Lightbox integration'),
+  );
+
+  if (module_exists('lightbox2') || module_exists('jlightbox')) {
+    $form['galleria_lightbox']['#description'] = t('Galleria can integrate with the Lightbox2 and jQuery Lightbox modules to let users open Galleria images in a Lightbox.');
+
+    $form['galleria_lightbox']['galleria_lightbox'] = array(
+      '#type' => 'select',
+      '#title' => t('Lightbox module'),
+      '#options' => array(
+        'none' => t('None'),
+      ),
+      '#default_value' => variable_get('galleria_lightbox', 'none'),
+      '#description' => t('Select the Lightbox module that you would like to integrate with Galleria.'),
+    );
+    if (module_exists('lightbox2')) {
+      $form['galleria_lightbox']['galleria_lightbox']['#options']['lightbox2'] = t('Lightbox2');
+    }
+    if (module_exists('jlightbox')) {
+      $form['galleria_lightbox']['galleria_lightbox']['#options']['jlightbox'] = t('jQuery Lightbox');
+    }
+
+    if (module_exists('imagecache')) {
+      $form['galleria_lightbox']['galleria_lightbox_preset'] = array(
+        '#type' => 'select',
+        '#title' => t('Lightbox ImageCache preset'),
+        '#options' => $presets,
+        '#default_value' => variable_get('galleria_lightbox_preset', ''),
+        '#description' => t('Select the ImageCache preset to display in Galleria Lightboxes.'),
+      );
+    }
+  }
+  else {
+    $form['galleria_lightbox']['#description'] = '<em>' . t('Install the Lightbox2 or jQuery Lightbox module to let users open Galleria images in a Lightbox.') . '</em>';
+  }
 
   return system_settings_form($form);
 }

@@ -11,6 +11,15 @@ Drupal.galleria = {};
 Drupal.galleria.options = {
   insert : '#main-image',
   onImage : function(image, caption, thumb) {
+    // Lightbox support
+    if (Drupal.settings.galleria_lightbox != 'none') {
+      // surround the displayed image with a Lightbox link
+      image.wrap('<a href="' + thumb.siblings('a').attr('href') + '" rel="lightbox[galleria]" title="' + caption.text() + '"></a>');
+      // keep Galleria from adding a click event to the image
+      $.galleria.clickNext = false; 
+      image.attr('title','View full-size');
+    }
+
     // let's add some image effects for demonstration purposes
     // fade in the image & caption
     if(!($.browser.mozilla && navigator.appVersion.indexOf("Win")!=-1) ) { // FF/Win fades large images terribly slow
@@ -34,13 +43,25 @@ Drupal.galleria.options = {
       // fade in active thumbnail
       thumb.fadeTo('fast',1).addClass('selected');
 
-      // add a title for the clickable image
-      image.attr('title','Next image >>');
+      if (Drupal.settings.galleria_lightbox == 'none') {
+        // add a title for the clickable image
+        image.attr('title','Next image >>');
+      }
 
       $('.galleria-nav').show();
 
       // trigger the jCarousel to scroll to the current image's thumbnail
       $('#main-image').trigger('img_change', [thumb.parent().attr('jcarouselindex')]);
+    }
+
+    // scan the page for new Lightbox links
+    switch (Drupal.settings.galleria_lightbox) {
+      case 'lightbox2':
+        Lightbox.initList();
+        break;
+      case 'jlightbox':
+        Lightbox.updateImageList();
+        break;
     }
   },
 
@@ -60,6 +81,23 @@ Drupal.galleria.options = {
       function() { thumb.fadeTo('fast', 1); },
       function() { _li.not('.active').children('img').fadeTo('fast', Drupal.settings.thumb_opacity); } // don't fade out if the parent is active
     )
+
+    // Lightbox support
+    if (Drupal.settings.galleria_lightbox != 'none') {
+      // add a Lightbox link after each thumbnail
+      thumb.after('<a href="' + thumb.attr('alt') + '" rel="lightbox[galleria]" title="' + thumb.attr('title') + '"></a>');
+      if (_li.hasClass('last')) {
+        // scan the page for new Lightbox links once the last thumnail is loaded
+        switch (Drupal.settings.galleria_lightbox) {
+          case 'lightbox2':
+            Lightbox.initList();
+            break;
+          case 'jlightbox':
+            Lightbox.updateImageList();
+            break;
+        }
+      }
+    }
   },
 
   history : false
