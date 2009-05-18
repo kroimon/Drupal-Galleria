@@ -14,7 +14,6 @@ function galleria_uninstall() {
   variable_del('galleria_show_page_warning');
   variable_del('galleria_imagecache_preset');
   variable_del('galleria_thumb_imagecache_preset');
-  variable_del('galleria_thumb_location');
   variable_del('galleria_jcarousel');
   variable_del('galleria_jcarousel_vertical');
   variable_del('galleria_jcarousel_visible');

@@ -14,6 +14,7 @@ Galleria 1.0, xxxx-x-x
 - [#454078] by petrd: helpful message for rearranging fields.
 - [#455656] by gmclelland, Mark Theunissen: better description on content type edit form.
 - [#371797] by prof1337: opening the main image in a lightbox.
+- [#458448] by prof1337, Mark Theunissen: move markup into template file.
 
 Galleria 1.0-beta4, 2009-03-23
 ----------------------

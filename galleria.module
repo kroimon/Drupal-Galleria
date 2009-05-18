@@ -329,14 +329,10 @@ function template_preprocess_galleria(&$vars) {
     'class' => 'gallery clear-block',
   );
 
-  if (variable_get('galleria_thumb_location', 'below') == 'above') {
-    $vars['gallery'] = theme('item_list', $image_list, NULL, 'ul', $attribs) . '<div id="main-image"></div>';
-  }
-  else {
-    $vars['gallery'] = '<div id="main-image"></div>' . theme('item_list', $image_list, NULL, 'ul', $attribs);
-  }
-
-  $vars['next_prev_links'] = ($i > 1) ? '<a onclick="$.galleria.prev(); return false;" href="#"><< ' . t('previous') . '</a> | <a onclick="$.galleria.next(); return false;" href="#">' . t('next') . '>></a>' : '';
+  $vars['thumbnails'] = theme('item_list', $image_list, NULL, 'ul', $attribs);
+  $vars['image_count'] = $i;
+  $vars['prev'] = t('previous');
+  $vars['next'] = t('next');
 
   // jCarousel integration setup
   if (module_exists('jcarousel') && variable_get('galleria_jcarousel', 'enabled') == 'enabled' && $i > 1) {

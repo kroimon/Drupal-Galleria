@@ -35,16 +35,6 @@ function galleria_admin_settings() {
     '#description' => t('Value from 0 .. 1'),
   );
 
-  $form['galleria_admin']['galleria_thumb_location'] = array(
-    '#type' => 'select',
-    '#title' => t('Location of thumbnails'),
-    '#options' => array(
-      'above' => t('Above main image'),
-      'below' => t('Below main image'),
-    ),
-    '#default_value' => variable_get('galleria_thumb_location', 'below'),
-  );
-
   $form['galleria_admin']['galleria_show_page_warning'] = array(
     '#type' => 'checkbox',
     '#title' => t('Galleria warnings'),
