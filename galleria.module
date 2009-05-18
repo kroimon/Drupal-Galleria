@@ -371,11 +371,13 @@ function theme_galleria_formatter_imagefield_galleria($element) {
 
   $images = array();
   foreach (element_children($element) as $key) {
-    $images[] = (object) array(
-      'filepath' => $element[$key]['#item']['filepath'],
-      'filename' => $element[$key]['#item']['filename'],
-      'description' => $element[$key]['#item']['data']['description'],
-    );
+    if ($element[$key]['#item'] != NULL) {
+      $images[] = (object) array(
+        'filepath' => $element[$key]['#item']['filepath'],
+        'filename' => $element[$key]['#item']['filename'],
+        'description' => $element[$key]['#item']['data']['description'],
+      );
+    }
   }
 
   return theme('galleria', $images);
