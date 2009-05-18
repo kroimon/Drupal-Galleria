@@ -9,14 +9,15 @@ Drupal.galleria = {};
  * Configuration options for the Galleria.
  */
 Drupal.galleria.options = {
+  num_thumbs : 1,
   insert : '#main-image',
   onImage : function(image, caption, thumb) {
     // Lightbox support
     if (Drupal.settings.galleria_lightbox != 'none') {
       // surround the displayed image with a Lightbox link
-      image.wrap('<a href="' + thumb.siblings('a').attr('href') + '" rel="lightbox[galleria]" title="' + caption.text() + '"></a>');
+      image.wrap('<a href="#" onclick="Lightbox.start(document.getElementById(\'' + thumb.next('a').attr('id') + '\')); return false;"></a>');
       // keep Galleria from adding a click event to the image
-      $.galleria.clickNext = false; 
+      $.galleria.clickNext = false;
       image.attr('title','View full-size');
     }
 
@@ -53,16 +54,6 @@ Drupal.galleria.options = {
       // trigger the jCarousel to scroll to the current image's thumbnail
       $('#main-image').trigger('img_change', [thumb.parent().attr('jcarouselindex')]);
     }
-
-    // scan the page for new Lightbox links
-    switch (Drupal.settings.galleria_lightbox) {
-      case 'lightbox2':
-        Lightbox.initList();
-        break;
-      case 'jlightbox':
-        Lightbox.updateImageList();
-        break;
-    }
   },
 
   onThumb : function(thumb) {
@@ -85,7 +76,7 @@ Drupal.galleria.options = {
     // Lightbox support
     if (Drupal.settings.galleria_lightbox != 'none') {
       // add a Lightbox link after each thumbnail
-      thumb.after('<a href="' + thumb.attr('alt') + '" rel="lightbox[galleria]" title="' + thumb.attr('title') + '"></a>');
+      thumb.after('<a id="galleria_link_' + Drupal.galleria.options.num_thumbs++ + '" href="' + thumb.attr('alt') + '" rel="lightbox[galleria]" title="' + thumb.attr('title') + '"></a>');
       if (_li.hasClass('last')) {
         // scan the page for new Lightbox links once the last thumnail is loaded
         switch (Drupal.settings.galleria_lightbox) {
@@ -129,4 +120,3 @@ Drupal.behaviors.initGalleria = function(context) {
     }
   });
 };
-

@@ -15,6 +15,8 @@ Galleria 1.0, xxxx-x-x
 - [#455656] by gmclelland, Mark Theunissen: better description on content type edit form.
 - [#371797] by prof1337: opening the main image in a lightbox.
 - [#458448] by prof1337, Mark Theunissen: move markup into template file.
+- [#342708] by Mark Theunissen: images display when limit is set.
+- [#464554] by prof1337: Lightbox image order is not consistent.
 
 Galleria 1.0-beta4, 2009-03-23
 ----------------------
