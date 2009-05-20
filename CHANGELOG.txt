@@ -1,6 +1,6 @@
 // $Id$
 
-Galleria 1.0, xxxx-x-x
+Galleria 1.0-rc1, 2009-05-20
 ----------------------
 - [#431108] by prof1337: compatibility with jQuery 1.3.
 - [#425840] by prof1337: fix display if only one image in galleria.

@@ -1,6 +1,5 @@
 ; $Id$
 name = Galleria
 description = Turns nodes into Galleria galleries, a javascript image gallery.
-dependencies[] = upload
 package = "jQuery"
 core = 6.x

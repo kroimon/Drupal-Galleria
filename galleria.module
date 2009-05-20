@@ -66,15 +66,15 @@ function galleria_is_valid($node) {
     // are there attachments?
     if (!empty($node->files)) {
       if (!($valid = galleria_validate_file_extensions($node->files))) {
-        galleria_set_message(t('Invalid Galleria: at least one attachment must be an image.'), 'error');
+        galleria_set_message(t('Invalid Galleria: at least one attachment must be an image. See README.txt for help.'), 'error');
       }
     }
     else {
-      galleria_set_message(t('Invalid Galleria: there are no attachments.'), 'error');
+      galleria_set_message(t('Invalid Galleria: there are no attachments. See README.txt for help.'), 'error');
     }
   }
   else {
-    galleria_set_message(t('Invalid Galleria: not a node.'), 'error');
+    galleria_set_message(t('Invalid Galleria: not a node. See README.txt for help.'), 'error');
   }
 
   return $valid;
@@ -172,7 +172,7 @@ function galleria_html($nid = NULL) {
       }
     }
     else {
-      drupal_set_message(t('Node type is not selected as a Galleria.'), 'error');
+      drupal_set_message(t('Node type is not selected as a Galleria. See README.txt for help.'), 'error');
     }
   }
 }
@@ -216,7 +216,7 @@ function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
           }
         }
         else {
-          galleria_set_message(t('Gallerias only display when viewing a node by itself on the page.'), 'warning');
+          galleria_set_message(t('Gallerias only display when viewing a node by itself on the page. See README.txt for help.'), 'warning');
         }
       }
   }
