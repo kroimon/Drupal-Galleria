@@ -3,6 +3,7 @@
 Galleria 1.0-rc2, 2009-06-02
 ----------------------
 - [#471500] by Mark Theunissen: alt text for images.
+- [#479566] by Mark Theunissen: only run Galleria routine when unprocessed ones exist.
 
 Galleria 1.0-rc1, 2009-05-20
 ----------------------

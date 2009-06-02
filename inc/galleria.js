@@ -109,11 +109,15 @@ Drupal.galleria.jcarousel_initCallback = function(carousel) {
  * Attach the Galleria initialisation to Drupal.behaviors.
  */
 Drupal.behaviors.initGalleria = function(context) {
-  // init on plain gallerias
-  $('ul.gallery').galleria(Drupal.galleria.options);
+  // Only run code if there are unprocessed Gallerias.
+  if ($('ul.gallery:not(.galleria-processed)').size() > 0) {
+    $('ul.gallery:not(.galleria-processed)', context)
+      .addClass('galleria-processed')
+      .galleria(Drupal.galleria.options);
+  }
 
   // when the ajax call is complete, load galleria. Used when viewing in a lightbox.
-  $('body').bind("ajaxComplete", function() {
+  $('body').bind("ajaxComplete", function(event, request, settings) {
     // check that a lightbox with a loaded image list exists
     if ($('#lightbox ul.gallery').length > 0) {
       $('#lightbox ul.gallery').galleria(Drupal.galleria.options);
