@@ -3,6 +3,7 @@
 Galleria 1.0, xxxx-xx-xx
 ----------------------
 - [#484022] by worldwidemv: Empty imagefields should not display
+- [#483990] by luron: French translation.
 
 Galleria 1.0-rc2, 2009-06-02
 ----------------------
