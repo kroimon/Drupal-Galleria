@@ -1,6 +1,6 @@
 // $Id$
 
-Galleria 1.0, xxxx-xx-xx
+Galleria 1.0, 2009-06-09
 ----------------------
 - [#484022] by worldwidemv: Empty imagefields should not display
 - [#483990] by luron: French translation.
