@@ -3,103 +3,223 @@
 
 /**
  * @file
- * Turns a node into a Galleria image gallery.
+ * A light-weight, customizable image gallery plugin for jQuery
  */
 
 /**
- * Implementation of hook_form_alter().
+ * Implementation of hook_field_formatter_info().
+ * 
+ * Adds the Galleria format option within the manage display form of
+ * of an image field.
  */
-function galleria_form_alter(&$form, $form_state, $form_id) {
-  if ($form_id == 'node_type_form' && isset($form['identity']['type'])) {
-    $form['workflow']['galleria'] = array(
-      '#type' => 'radios',
-      '#title' => t('Galleria'),
-      '#default_value' => variable_get('galleria_'. $form['#node_type']->type, 0),
-      '#options' => array(t('Disabled'), t('Enabled')),
-      '#description' => t('Convert this node type into a Galleria.')
+function galleria_field_formatter_info() {
+  $formatters = array(
+    'galleria' => array(
+      'label' => t('Galleria'),
+      'field types' => array('image'),
+      'settings' => array('galleria_zoom_style' => '', 'galleria_thumb_style' => '', 'galleria_player_theme' => ''),
+    ),
+  );
+  return $formatters;
+}
+
+/**
+ * Implementation of hook_field_formatter_settings_form().
+ * 
+ * Provides display settings form within the manage display form of 
+ * an image field with formatter galleria.
+ */
+function galleria_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  // shows 2 select boxes for the big image style and thumbnail style
+  $image_styles = image_style_options(FALSE);
+  $element['galleria_zoom_style'] = array(
+    '#title' => t('Zoomed image style'),
+    '#type' => 'select',
+    '#default_value' => $settings['galleria_zoom_style'],
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+  );
+  $element['galleria_thumb_style'] = array(
+    '#title' => t('Preview image style'),
+    '#type' => 'select',
+    '#default_value' => $settings['galleria_thumb_style'],
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+  );
+
+  return $element;
+}
+
+/**
+ * Implementation of hook_field_formatter_settings_summary().
+ * 
+ * Displays the summary of the set options of a Galleria formatted image field
+ */
+function galleria_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = array();
+
+  $image_styles = image_style_options(FALSE);
+  // Unset possible 'No defined styles' option.
+  unset($image_styles['']);
+  // Styles could be lost because of enabled/disabled modules that defines
+  // their styles in code.
+  if (isset($image_styles[$settings['galleria_zoom_style']])) {
+    $summary[] = t('Zoomed image style: @style', array('@style' => $image_styles[$settings['galleria_zoom_style']]));
+  }
+  else {
+    $summary[] = t('Zoomed image style: Original image');
+  }
+
+  if (isset($image_styles[$settings['galleria_thumb_style']])) {
+    $summary[] = t('Preview image style: @style', array('@style' => $image_styles[$settings['galleria_thumb_style']]));
+  }
+  else {
+    $summary[] = t('Preview image style: Original image');
+  }
+  
+  return implode('<br />', $summary);
+}
+
+/**
+ * Implementation of hook_field_formatter_view().
+ * 
+ * Prepares a renderable array of images and adds the neccessary JS and CSS
+ */
+function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+ 
+  $slides = array();
+  
+  // stores data for all images in $slides
+  foreach ($items as $delta => $item) {
+    $slides[$delta] = array(
+      '#theme' => 'galleria_image_formatter_item',
+      '#item' => $item,
+      '#node' => $entity,
+      '#field' => $field,
+      '#galleria_zoom_style' => $display['settings']['galleria_zoom_style'],
+      '#galleria_thumb_style' => $display['settings']['galleria_thumb_style'],
     );
+  }
+  
+  // if there are images init the galleria
+  if (count($slides) > 0) {
+    galleria_includes();
+   
+    $element = array(
+      '#theme' => 'galleria_container',
+      '#images' => $slides,
+    );
+    
+    return $element;
+  }
+  else {
+    // no images to show, therefore cancel display
+    return;
+  }
+}
+
+/*
+ * This function includes the neccessary JS and CSS files only once
+ */
+function galleria_includes() {
+  static $included = FALSE;
+  
+  // make sure we only include once
+  if ($included == FALSE) {
+    $path = drupal_get_path('module', 'galleria');
+    
+    // include files
+    drupal_add_css($path . '/galleria.container.css');
+    drupal_add_js($path . '/js/jquery.galleria.js');
+    drupal_add_js($path . '/js/themes/classic/galleria.classic.js');
+    drupal_add_js($path . '/js/galleria.load.js');
+    
+    $included = TRUE;
   }
 }
 
 /**
- * Implementation of hook_theme().
+ * Implmentation of hook_theme().
  */
 function galleria_theme() {
+ 
   return array(
-    'galleria' => array(
-      'template' => 'galleria',
-      'arguments' => array('node' => NULL),
+  
+    'galleria_imagefield' => array(
+      'variables' => array(
+        'image' => array(),
+        'path' => NULL,
+        'title' => NULL,
+        'galleria_zoom_style' => NULL,
+        'galleria_thumb_style' => NULL,
+      ),
+      'file' => 'galleria.theme.inc',
+    ),
+
+    'galleria_insert_image' => array(
+      'variables' => array(
+        'item' => NULL,
+      ),
+      'template' => 'galleria-insert-image',
+      'file' => 'galleria.theme.inc',
+    ),
+
+    'galleria_image_formatter_item' => array(
+      'variables' => array(
+        'item' => NULL,
+        'node' => NULL,
+        'field' => array(),
+        'galleria_zoom_style' => NULL,
+        'galleria_thumb_style' => NULL,
+      ),
+      'file' => 'galleria.theme.inc',
+    ),
+    
+   'galleria_container' => array(
+      'variables' => array(
+        'images' => NULL,
+      ),
+      'template' => 'galleria-container',
+      'file' => 'galleria.theme.inc',
     ),
   );
 }
 
 /**
- * Implementation of hook_nodeapi().
+ * Implementation of hook_image_default_styles().
+ * 
+ * Provides default image style presets that can be overridden by site administrators.
  */
-function galleria_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
-  switch ($op) {
-    case 'view':
-      // abort unless we are viewing full page
-      if (!$page) {
-        break;
-      }
+ function galleria_image_default_styles() {
+  $styles = array();
 
-      // abort if this is not a galleria type
-      if (variable_get("galleria_$node->type", 0) == 0) {
-        break;
-      }
-
-      // this is a galleria node, so perform modifications!
-      _galleria_includes();
-      unset($node->content);
-      $node->content['galleria']['#value'] = theme('galleria', $node);
-      $node->content['galleria']['#weight'] = 10;
-      break;
-  }
-}
-
-/**
- * Include necessary files for the galleria.
- */
-function _galleria_includes() {
-  $modulepath = drupal_get_path('module', 'galleria');
-  drupal_add_css($modulepath . '/inc/galleria.css');
-
-  // add thickbox
-  drupal_add_js($modulepath . '/thickbox/thickbox-compressed.js');
-  drupal_add_css($modulepath . '/thickbox/thickbox.css');
-
-  // pass through the dynamic path so it can be accessed from the jquery
-  $js = "var path_to_galleria = '". base_path() . $modulepath . "';";
-  drupal_add_js($js, 'inline');
-
-  // main plugin
-  drupal_add_js($modulepath . '/inc/jquery.galleria.js');
-
-  // activate galleria on .galleria elements
-  drupal_add_js($modulepath . '/inc/galleria.js');
-}
-
-/**
- * Preprocess the galleria variables.
- */
-function template_preprocess_galleria(&$vars) {
-  $files = $vars['node']->files;
-  $images = array();
-  $i = 0;
-
-  foreach ($files as $file) {
-    $images[] = array(
-      'data' => theme('image', $file->filepath),
-      'class' => $i == 0 ? 'active' : '',
-    );
-    $i++;
-  }
-
-  $attribs = array(
-    'class' => 'gallery',
+  // image preset for the big image
+  $styles['galleria_zoom'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array('width' => 450, 'height' => 300, 'upscale' => 1),
+        'weight' => 0,
+      ),
+    )
   );
-  $vars['gallery'] = theme('item_list', $images, NULL, 'ul', $attribs);
+  
+  // image preset for thumbnails
+  $styles['galleria_thumb'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array('width' => 50, 'height' => 30, 'upscale' => 1),
+        'weight' => 0,
+      ),
+    )
+  );
+
+  return $styles;
 }
-
-
