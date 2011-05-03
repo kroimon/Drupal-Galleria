@@ -91,36 +91,32 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
  * Prepares a renderable array of images and adds the neccessary JS and CSS
  */
 function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
- 
-  $slides = array();
+  $element = array();
   
-  // stores data for all images in $slides
-  foreach ($items as $delta => $item) {
-    $slides[$delta] = array(
-      '#theme' => 'galleria_image_formatter_item',
-      '#item' => $item,
-      '#node' => $entity,
-      '#field' => $field,
-      '#galleria_zoom_style' => $display['settings']['galleria_zoom_style'],
-      '#galleria_thumb_style' => $display['settings']['galleria_thumb_style'],
-    );
-  }
-  
-  // if there are images init the galleria
-  if (count($slides) > 0) {
+  if (count($items) > 0) {
+    $element['#theme'] = 'galleria_container';
     galleria_includes();
-   
-    $element = array(
-      '#theme' => 'galleria_container',
-      '#images' => $slides,
+  }
+ 
+  foreach ($items as $delta => $item) {
+    if (empty($display['settings']['galleria_zoom_style'])) {
+       $zoom_url = file_create_url($item['uri']);
+    } else {
+       $zoom_url = image_style_url($display['settings']['galleria_zoom_style'], $item['uri']);
+    }
+
+    $element['#items'][$delta] = array(
+      '#theme' => 'image_formatter',
+      '#item' => $item,
+      '#image_style' => $display['settings']['galleria_thumb_style'],
+      '#path' => array(
+         'path' => $zoom_url,
+         'options' => array(),
+      ),
     );
+  }
     
-    return $element;
-  }
-  else {
-    // no images to show, therefore cancel display
-    return;
-  }
+  return $element;
 }
 
 /*
@@ -150,42 +146,11 @@ function galleria_theme() {
  
   return array(
   
-    'galleria_imagefield' => array(
-      'variables' => array(
-        'image' => array(),
-        'path' => NULL,
-        'title' => NULL,
-        'galleria_zoom_style' => NULL,
-        'galleria_thumb_style' => NULL,
-      ),
-      'file' => 'galleria.theme.inc',
-    ),
-
-    'galleria_insert_image' => array(
-      'variables' => array(
-        'item' => NULL,
-      ),
-      'template' => 'galleria-insert-image',
-      'file' => 'galleria.theme.inc',
-    ),
-
-    'galleria_image_formatter_item' => array(
-      'variables' => array(
-        'item' => NULL,
-        'node' => NULL,
-        'field' => array(),
-        'galleria_zoom_style' => NULL,
-        'galleria_thumb_style' => NULL,
-      ),
-      'file' => 'galleria.theme.inc',
-    ),
-    
    'galleria_container' => array(
       'variables' => array(
-        'images' => NULL,
+        'items' => NULL,
       ),
       'template' => 'galleria-container',
-      'file' => 'galleria.theme.inc',
     ),
   );
 }
@@ -214,7 +179,7 @@ function galleria_theme() {
     'effects' => array(
       array(
         'name' => 'image_scale',
-        'data' => array('width' => 50, 'height' => 30, 'upscale' => 1),
+        'data' => array('width' => 50, 'height' => 40, 'upscale' => 1),
         'weight' => 0,
       ),
     )
