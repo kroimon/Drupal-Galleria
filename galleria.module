@@ -131,7 +131,7 @@ function galleria_includes() {
     
     // include files
     drupal_add_css($path . '/galleria.container.css');
-    drupal_add_js($path . '/js/jquery.galleria.js');
+    drupal_add_js($path . '/js/galleria.jquery.min.js');
     drupal_add_js($path . '/js/themes/classic/galleria.classic.js');
     drupal_add_js($path . '/js/galleria.load.js');
     
