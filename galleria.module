@@ -2,7 +2,7 @@
 
 /**
  * @file
- * A light-weight, customizable image gallery plugin for jQuery
+ * A light-weight, customizable image gallery plugin for Drupal based on jQuery
  */
 
 /**
@@ -16,7 +16,12 @@ function galleria_field_formatter_info() {
     'galleria' => array(
       'label' => t('Galleria'),
       'field types' => array('image'),
-      'settings' => array('galleria_zoom_style' => '', 'galleria_thumb_style' => '', 'galleria_player_theme' => ''),
+      'settings' => array(
+        'galleria_zoom_style' => '',
+        'galleria_thumb_style' => '',
+        'galleria_theme' => '',
+        'galleria_theme_js' => '',
+      ),
     ),
   );
   return $formatters;
@@ -25,13 +30,13 @@ function galleria_field_formatter_info() {
 /**
  * Implementation of hook_field_formatter_settings_form().
  * 
- * Provides display settings form within the manage display form of 
+ * Provides display settings form within the manage display page of 
  * an image field with formatter galleria.
  */
 function galleria_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
-
+  
   // shows 2 select boxes for the big image style and thumbnail style
   $image_styles = image_style_options(FALSE);
   $element['galleria_zoom_style'] = array(
@@ -48,7 +53,25 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     '#empty_option' => t('None (original image)'),
     '#options' => $image_styles,
   );
-
+  
+  // get the available themes from the module folder
+  $themes = array();
+  $path = drupal_get_path('module', 'galleria');
+  $dir_handle = opendir($path . '/js/themes/');
+  while($item = readdir($dir_handle)) {
+    if (is_dir($item) || $item == '.' || $item == '..') continue;
+    $themes[$item] = $item;
+  }
+  asort($themes);
+  
+  // show the select box to choose the theme
+  $element['galleria_theme'] = array(
+    '#title' => t('Theme'),
+    '#type' => 'select',
+    '#default_value' => 'classic', // defaults to classic theme
+    '#options' => $themes,
+  );
+  
   return $element;
 }
 
@@ -82,6 +105,13 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
     $summary[] = t('Preview image style: Original image');
   }
   
+  if (isset($settings['galleria_theme'])) {
+    $summary[] = t('Galleria Theme: @theme', array('@theme' => $settings['galleria_theme']));
+  }
+  else {
+    $summary[] = t('No theme selected, default is "classic"');
+  }
+  
   return implode('<br />', $summary);
 }
 
@@ -95,7 +125,7 @@ function galleria_field_formatter_view($entity_type, $entity, $field, $instance,
   
   if (count($items) > 0) {
     $element['#theme'] = 'galleria_container';
-    galleria_includes();
+    galleria_includes($display['settings']['galleria_theme']);
   }
  
   foreach ($items as $delta => $item) {
@@ -122,7 +152,7 @@ function galleria_field_formatter_view($entity_type, $entity, $field, $instance,
 /*
  * This function includes the neccessary JS and CSS files only once
  */
-function galleria_includes() {
+function galleria_includes($theme) {
   static $included = FALSE;
   
   // make sure we only include once
@@ -132,7 +162,21 @@ function galleria_includes() {
     // include files
     drupal_add_css($path . '/galleria.container.css');
     drupal_add_js($path . '/js/galleria.jquery.min.js');
-    drupal_add_js($path . '/js/themes/classic/galleria.classic.js');
+    
+    // include the theme JS file dynamically
+    $path = drupal_get_path('module', 'galleria');
+    $dir_handle = opendir($path . '/js/themes/' . $theme);
+    while ($file = readdir($dir_handle)) {
+      $split = explode('.', $file);
+      if ($split[0] == 'galleria' && $split[2] == 'js') {
+        $theme_js_file = $file;
+        break;
+      }
+    }
+ 
+    dsm($theme_js_file);
+    
+    drupal_add_js($path . '/js/themes/' . $theme . '/' . $theme_js_file);
     drupal_add_js($path . '/js/galleria.load.js');
     
     $included = TRUE;
