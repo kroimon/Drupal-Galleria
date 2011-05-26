@@ -1,5 +1,6 @@
 MISSING Features FROM D6
 ------------------------
+
 - No jCarousel support
 - No Lightbox2 support (missing dep)
 - No administer settings page
@@ -11,25 +12,41 @@ MISSING Features FROM D6
 
 TODO's
 ------
-- Use JS library includes like jquery_plugin or drupal_add_library
-- Support images from non public directories
 
-HOWTO Install Galleria
+- Support images from non public directories
+- Solve further issues from the module page on drupal.org/project/galleria
+
+HOWTO install galleria
+----------------------
+
+1. Download the Galleria Javascript library from http://galleria.aino.se/download/ and
+   extract the galleria folder into your /sites/all/libraries/ directory.
+
+2. Download and save the galleria module folder into your /sites/all/modules/ directory and 
+   enable the Galleria module.
+
+HOWTO use Galleria
 ---------------------
 
-1. Install and enable Galleria. Make sure the Image module is installed and enabled (Core module in drupal 7).
+1. Create your gallery content type or alter an existing one.
 
-2. Create your gallery content type or alter an existing one.
+2. Add an image field to your content type.
 
-3. Add an image field to your content type.
-
-4. Go to the Manage Display page of your content type. On your image field in the FORMAT column,
+3. Go to the Manage Display page of your content type. On your image field in the FORMAT column,
    choose "Galleria" as formatter in the select box. Next click on the button on the right of the 
    select box and choose your image style presets for the main image ("Zoomed image style") and the 
-   preview thumbnails.
+   preview thumbnails. If you downloaded additional themes for galleria you are further able to 
+   choose the theme you want to use here.
    
-5. Upload some images, add titles if you want and view the node. You should now see the images in the
+4. Upload some images, add titles if you want and view the node. You should now see the images in the
    galleria display widget.
+   
+Adding additional themes
+------------------------
+
+Galleria supports several additional themes which can be bought and downloaded at http://galleria.aino.se/themes/.
+In order to add an additional theme just download it and copy the theme folder into your
+/sites/all/libraries/galleria/themes/ folder.
 
 Image style presets support
 ---------------------------

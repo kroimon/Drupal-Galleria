@@ -4,6 +4,8 @@ core = 7.x
 package = "JQuery"
 
 dependencies[] = image
+dependencies[] = libraries
+
 files[] = galleria.module
 
 ; Information added by drupal.org packaging script on January 1, 1970 - 00:00

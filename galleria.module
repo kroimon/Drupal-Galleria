@@ -19,8 +19,7 @@ function galleria_field_formatter_info() {
       'settings' => array(
         'galleria_zoom_style' => '',
         'galleria_thumb_style' => '',
-        'galleria_theme' => '',
-        'galleria_theme_js' => '',
+        'galleria_theme' => 'classic',
       ),
     ),
   );
@@ -56,22 +55,26 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
   
   // get the available themes from the module folder
   $themes = array();
-  $path = drupal_get_path('module', 'galleria');
-  $dir_handle = opendir($path . '/js/themes/');
+  $path = libraries_get_path('galleria');
+  $dir_handle = opendir($path . '/themes/');
   while($item = readdir($dir_handle)) {
-    if (is_dir($item) || $item == '.' || $item == '..') continue;
+    if (is_dir($item) || $item == '.' || $item == '..' || substr($item, 0, 1) == '.') continue;
     $themes[$item] = $item;
   }
-  asort($themes);
   
-  // show the select box to choose the theme
-  $element['galleria_theme'] = array(
-    '#title' => t('Theme'),
-    '#type' => 'select',
-    '#default_value' => 'classic', // defaults to classic theme
-    '#options' => $themes,
-  );
-  
+  // only show the theme select box if we got more than one theme
+  if (count($themes) > 1) {
+    asort($themes);
+    
+    // show the select box to choose the theme
+    $element['galleria_theme'] = array(
+      '#title' => t('Theme'),
+      '#type' => 'select',
+      '#default_value' => 'classic', // defaults to classic theme
+      '#options' => $themes,
+    );
+  }
+    
   return $element;
 }
 
@@ -157,29 +160,36 @@ function galleria_includes($theme) {
   
   // make sure we only include once
   if ($included == FALSE) {
-    $path = drupal_get_path('module', 'galleria');
-    
-    // include files
-    drupal_add_css($path . '/galleria.container.css');
-    drupal_add_js($path . '/js/galleria.jquery.min.js');
-    
-    // include the theme JS file dynamically
-    $path = drupal_get_path('module', 'galleria');
-    $dir_handle = opendir($path . '/js/themes/' . $theme);
-    while ($file = readdir($dir_handle)) {
-      $split = explode('.', $file);
-      if ($split[0] == 'galleria' && $split[2] == 'js') {
-        $theme_js_file = $file;
-        break;
+
+    if (($libpath = libraries_get_path('galleria')) && is_dir(libraries_get_path('galleria'))) {
+
+      // include essential files from /libraries/galleria
+      drupal_add_js($libpath . '/galleria-1.2.3.min.js');
+      
+      // load the theme JS file dynamically
+      $dir_handle = opendir($libpath . '/themes/' . $theme . '/');
+      while ($file = readdir($dir_handle)) {
+        $split = explode('.', $file);
+        if ($split[0] == 'galleria' && $split[2] == 'js') {
+          $theme_js_file = $file;
+          break;
+        }
       }
+      
+      // add the theme JS file
+      drupal_add_js($libpath . '/themes/' . $theme . '/' . $theme_js_file);
+      
+      // load some css theming stuff and the galleria init script
+      $path = drupal_get_path('module', 'galleria');
+      drupal_add_css($path . '/galleria.container.css');
+      drupal_add_js($path . '/js/galleria.load.js');
+      
+      $included = TRUE;
     }
- 
-    dsm($theme_js_file);
-    
-    drupal_add_js($path . '/js/themes/' . $theme . '/' . $theme_js_file);
-    drupal_add_js($path . '/js/galleria.load.js');
-    
-    $included = TRUE;
+    else {
+      // no library exists, output error
+      drupal_set_message('Error: The Galleria Javascript library was not found in sites/all/libraries. Please refer to README.txt for installation instructions.', 'error');
+    }
   }
 }
 
