@@ -15,7 +15,7 @@
 		    //min_scale_ratio: 1,
 		    show_info:true
 	    };
-	    $('.galleria-content', context).galleria(opt);
+	    jQuery('.galleria-content', context).galleria(opt);
     }
   }
 })(jQuery);

@@ -170,7 +170,7 @@ function galleria_includes($theme) {
       $dir_handle = opendir($libpath . '/themes/' . $theme . '/');
       while ($file = readdir($dir_handle)) {
         $split = explode('.', $file);
-        if ($split[0] == 'galleria' && $split[2] == 'js') {
+        if ($split[0] == 'galleria' && $split[count($split) - 1] == 'js') {
           $theme_js_file = $file;
           break;
         }
@@ -179,7 +179,7 @@ function galleria_includes($theme) {
       // add the theme JS file
       drupal_add_js($libpath . '/themes/' . $theme . '/' . $theme_js_file);
       
-      // load some css theming stuff and the galleria init script
+      // load some css theming stuff and the galleria loader script
       $path = drupal_get_path('module', 'galleria');
       drupal_add_css($path . '/galleria.container.css');
       drupal_add_js($path . '/js/galleria.load.js');
@@ -240,4 +240,16 @@ function galleria_theme() {
   );
 
   return $styles;
+}
+
+/**
+ * Implementation of hook_views_api().
+ * 
+ * Neccessary in order to include the galleria style plugin
+ */
+function galleria_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'galleria'),
+  );
 }
