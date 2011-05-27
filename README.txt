@@ -26,20 +26,31 @@ HOWTO install galleria
    enable the Galleria module.
 
 HOWTO use Galleria
----------------------
+------------------
 
-1. Create your gallery content type or alter an existing one.
+a) Using Galleria with an image field in a node:
 
-2. Add an image field to your content type.
+    1. Create your gallery content type or alter an existing one.
+    
+    2. Add an image field to your content type.
+    
+    3. Go to the Manage Display page of your content type. On your image field in the FORMAT column,
+       choose "Galleria" as formatter in the select box. Next click on the button on the right of the 
+       select box and choose your image style presets for the main image ("Zoomed image style") and the 
+       preview thumbnails. If you downloaded additional themes for galleria you are further able to 
+       choose the theme you want to use here.
+       
+    4. Upload some images, add titles if you want and view the node. You should now be able see the images
+       in the galleria display widget.
 
-3. Go to the Manage Display page of your content type. On your image field in the FORMAT column,
-   choose "Galleria" as formatter in the select box. Next click on the button on the right of the 
-   select box and choose your image style presets for the main image ("Zoomed image style") and the 
-   preview thumbnails. If you downloaded additional themes for galleria you are further able to 
-   choose the theme you want to use here.
+b) Using Galleria in a view of image fields
+
+    1. Create a view of nodes with an image field. On the "FIELDS" panel in views set the display to "Fields"
+       and add only the single target field (which has to be of type image!).
+    
+    2. On the "FORMAT" Panel choose Galleria as your views display format.
    
-4. Upload some images, add titles if you want and view the node. You should now see the images in the
-   galleria display widget.
+    3. Have a look at your view, it should get rendered as a galleria now.
    
 Adding additional themes
 ------------------------
