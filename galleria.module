@@ -6,6 +6,26 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function galleria_menu() {
+  $items = array();
+  
+  $items['admin/config/media/galleria'] = array(
+    'title' => 'Galleria',
+    'description' => 'Adjust Galleria settings.',
+    'file' => 'galleria.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('galleria_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  
+  return $items;
+}
+
+
+
+/**
  * Implementation of hook_field_formatter_info().
  * 
  * Adds the Galleria format option within the manage display form of
@@ -58,7 +78,7 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
   $themes = array();
   $path = libraries_get_path('galleria');
   $dir_handle = opendir($path . '/themes/');
-  while($item = readdir($dir_handle)) {
+  while ($item = readdir($dir_handle)) {
     if (is_dir($item) || $item == '.' || $item == '..' || substr($item, 0, 1) == '.') continue;
     $themes[$item] = $item;
   }
@@ -103,7 +123,7 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     asort($image_fields);
     
     if (count($image_fields) == 0) {
-      drupal_set_message('ERROR: The referenced node type does not contain any valid image field(s).', 'error');
+      drupal_set_message(t('ERROR: The referenced node type does not contain any valid image field(s).'), 'error');
       return FALSE;
     }
     elseif (count($image_fields) == 1) {
@@ -195,7 +215,8 @@ function galleria_field_formatter_view($entity_type, $entity, $field, $instance,
   foreach ($items as $delta => $item) {
     if (empty($display['settings']['galleria_zoom_style'])) {
        $zoom_url = file_create_url($item['uri']);
-    } else {
+    }
+    else {
        $zoom_url = image_style_url($display['settings']['galleria_zoom_style'], $item['uri']);
     }
 
@@ -211,68 +232,6 @@ function galleria_field_formatter_view($entity_type, $entity, $field, $instance,
   }
     
   return $element;
-}
-
-function galleria_get_referenced_images($field) {
-  if (!$field) {
-    drupal_set_message('ERROR: The referenced field does not contain any image field.', 'error');
-    return FALSE;
-  }
-  
-  $fid_col_name = $field . '_fid';
-  $alt_col_name = $field . '_alt';
-  $title_col_name = $field . '_title';
-  $result = db_query('SELECT ' . $fid_col_name . ',' . $alt_col_name . ',' . $title_col_name . ' FROM field_data_' . $field);
-  
-  $images = array();
-  while($row = $result->fetchAssoc()) {
-    $image = (array) file_load($row[$fid_col_name]);
-    $image['alt'] = $row[$alt_col_name];
-    $image['title'] = $row[$title_col_name];
-    $images[] = $image;
-  }
-  
-  return $images;
-}
-/*
- * This function includes the neccessary JS and CSS files only once
- */
-function galleria_includes($theme) {
-  static $included = FALSE;
-  
-  // make sure we only include once
-  if ($included == FALSE) {
-
-    if (($libpath = libraries_get_path('galleria')) && is_dir(libraries_get_path('galleria'))) {
-
-      // include essential files from /libraries/galleria
-      drupal_add_js($libpath . '/galleria-1.2.3.min.js');
-      
-      // load the theme JS file dynamically
-      $dir_handle = opendir($libpath . '/themes/' . $theme . '/');
-      while ($file = readdir($dir_handle)) {
-        $split = explode('.', $file);
-        if ($split[0] == 'galleria' && $split[count($split) - 1] == 'js') {
-          $theme_js_file = $file;
-          break;
-        }
-      }
-      
-      // add the theme JS file
-      drupal_add_js($libpath . '/themes/' . $theme . '/' . $theme_js_file);
-      
-      // load some css theming stuff and the galleria loader script
-      $path = drupal_get_path('module', 'galleria');
-      drupal_add_css($path . '/galleria.container.css');
-      drupal_add_js($path . '/js/galleria.load.js');
-      
-      $included = TRUE;
-    }
-    else {
-      // no library exists, output error
-      drupal_set_message('ERROR: The Galleria Javascript library was not found in sites/all/libraries. Please refer to README.txt for installation instructions.', 'error');
-    }
-  }
 }
 
 /**
@@ -334,4 +293,110 @@ function galleria_views_api() {
     'api' => 3,
     'path' => drupal_get_path('module', 'galleria'),
   );
+}
+
+/*
+ * This function returns all images of an image field whose name is passed in argument $field
+ */
+function galleria_get_referenced_images($field) {
+  if (!$field) {
+    drupal_set_message(t('ERROR: The referenced field does not contain any image field.'), 'error');
+    return FALSE;
+  }
+  
+  $fid_col_name = $field . '_fid';
+  $alt_col_name = $field . '_alt';
+  $title_col_name = $field . '_title';
+  $result = db_query('SELECT ' . $fid_col_name . ',' . $alt_col_name . ',' . $title_col_name . ' FROM {field_data_' . $field . '}');
+  
+  $images = array();
+  while ($row = $result->fetchAssoc()) {
+    $image = (array) file_load($row[$fid_col_name]);
+    $image['alt'] = $row[$alt_col_name];
+    $image['title'] = $row[$title_col_name];
+    $images[] = $image;
+  }
+  
+  return $images;
+}
+
+/*
+ * This function includes the neccessary JS and CSS files only once
+ */
+function galleria_includes($theme) {
+  static $included = FALSE;
+  
+  // make sure we only include once
+  if ($included == FALSE) {
+
+    if (($libpath = libraries_get_path('galleria')) && is_dir(libraries_get_path('galleria'))) {
+
+      // include essential files from /libraries/galleria
+      drupal_add_js($libpath . '/galleria-1.2.3.min.js');
+      
+      // load the theme JS file dynamically
+      $dir_handle = opendir($libpath . '/themes/' . $theme . '/');
+      while ($file = readdir($dir_handle)) {
+        $split = explode('.', $file);
+        if ($split[0] == 'galleria' && $split[count($split) - 1] == 'js') {
+          $theme_js_file = $file;
+          break;
+        }
+      }
+      
+      // add the theme JS file
+      drupal_add_js($libpath . '/themes/' . $theme . '/' . $theme_js_file);
+      
+      // add some css theming stuff
+      $css  = '.galleria-content {';
+      $css .= '  width: ' . (integer) variable_get('galleria_width', 450) . 'px;';
+      $css .= '  height: ' . (integer) variable_get('galleria_height', 300) . 'px;';
+      $css .= '  margin:0px auto;'; 
+      $css .= '}';
+      drupal_add_css($css, 'inline');
+      
+      // add the global galleria settings and the galleria loader script
+      galleria_add_settings();
+      $path = drupal_get_path('module', 'galleria');
+      drupal_add_js($path . '/js/galleria.load.js');
+      
+      $included = TRUE;
+    }
+    else {
+      // no library exists, output error
+      drupal_set_message(t('ERROR: The Galleria Javascript library was not found in sites/all/libraries. Please refer to README.txt for installation instructions.'), 'error');
+    }
+  }
+}
+
+/*
+ * This function loads the configured settings of the config page and
+ * adds them into the Drupal.settings.galleria.opt JS object which is
+ * read when galleria is loaded 
+ */
+function galleria_add_settings() {
+  // set javascript gallereria options
+  $thumbnails = variable_get('galleria_thumbnails', 'on');
+  
+  // add the JS settings, load the values from the config page
+  drupal_add_js(
+    array(
+      'galleria' => array(
+        'opt' => array(
+          'transition'      => variable_get('galleria_transition', 'fade'),
+          'overlay_opacity' => variable_get('galleria_overlay_opacity', 0.85),
+          'show_imagenav'   => (boolean) variable_get('galleria_show_imagenav', TRUE),
+          'clicknext'       => (boolean) variable_get('galleria_clicknext', TRUE),
+          'queue'           => (boolean) variable_get('galleria_queue', TRUE),
+          'preload'         => variable_get('galleria_preload', 3),
+          'show_counter'    => (boolean) variable_get('galleria_show_counter', TRUE),
+          'autoplay'        => 0 != variable_get('galleria_autoplay', 0)? variable_get('galleria_autoplay', 0) : NULL,
+          'max_scale_ratio' => variable_get('galleria_max_scale_ratio', 1),
+          'min_scale_ratio' => variable_get('galleria_min_scale_ratio', 1),
+          'show_info'       => (boolean) variable_get('galleria_show_info', TRUE),
+          'thumbnails'      => 'on' == $thumbnails? (boolean) TRUE : ('off' == $thumbnails? FALSE : $thumbnails),
+        ),
+      ),
+    ), 
+  'setting');
 }

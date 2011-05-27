@@ -1,0 +1,24 @@
+<?php
+// $Id: $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the galleria module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function galleria_uninstall() {
+  variable_del('galleria_transition');
+  variable_del('galleria_overlay_opacity');
+  variable_del('galleria_show_imagenav');
+  variable_del('galleria_clicknext');
+  variable_del('galleria_queue');
+  variable_del('galleria_preload');
+  variable_del('galleria_show_counter');
+  variable_del('galleria_autoplay');
+  variable_del('galleria_max_scale_ratio');
+  variable_del('galleria_min_scale_ratio');
+  variable_del('galleria_show_info');
+}

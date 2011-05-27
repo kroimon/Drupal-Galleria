@@ -52,6 +52,12 @@ b) Using Galleria in a view of image fields
     2. On the "FORMAT" Panel choose Galleria as your views display format.
    
     3. Have a look at your view, it should get rendered as a galleria now.
+    
+Configure Galleria
+------------------
+
+Galleria has many configurable options to offer. A selection of the most important settings is now
+configurable on the Drupal "Configuration" page within the section "Media" (path is admin/config/media/galleria).
    
 Adding additional themes
 ------------------------
