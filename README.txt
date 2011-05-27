@@ -28,17 +28,18 @@ HOWTO install galleria
 HOWTO use Galleria
 ------------------
 
-a) Using Galleria with an image field in a node:
+a) Using Galleria with an image/nodereference field in a node:
 
     1. Create your gallery content type or alter an existing one.
     
-    2. Add an image field to your content type.
+    2. Add an image/nodereference field to your content type. If you choose a node reference field,
+       make sure you reference a content type that has got an image field.
     
-    3. Go to the Manage Display page of your content type. On your image field in the FORMAT column,
-       choose "Galleria" as formatter in the select box. Next click on the button on the right of the 
-       select box and choose your image style presets for the main image ("Zoomed image style") and the 
-       preview thumbnails. If you downloaded additional themes for galleria you are further able to 
-       choose the theme you want to use here.
+    3. Go to the Manage Display page of your content type. On your image/nodereference field in the 
+       FORMAT column, choose "Galleria" as formatter in the select box. Next click on the button on 
+       the right of the select box and choose your image style presets for the main image ("Zoomed $
+       image style") and the preview thumbnails. If you downloaded additional themes for galleria you
+       are further able to choose the theme you want to use here.
        
     4. Upload some images, add titles if you want and view the node. You should now be able see the images
        in the galleria display widget.

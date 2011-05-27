@@ -15,11 +15,12 @@ function galleria_field_formatter_info() {
   $formatters = array(
     'galleria' => array(
       'label' => t('Galleria'),
-      'field types' => array('image'),
+      'field types' => array('image', 'node_reference'),
       'settings' => array(
         'galleria_zoom_style' => '',
         'galleria_thumb_style' => '',
         'galleria_theme' => 'classic',
+        'galleria_reference_img_src' => NULL,
       ),
     ),
   );
@@ -70,9 +71,57 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     $element['galleria_theme'] = array(
       '#title' => t('Theme'),
       '#type' => 'select',
-      '#default_value' => 'classic', // defaults to classic theme
+      '#default_value' => isset($settings['galleria_theme']) ? $settings['galleria_theme'] : 'classic', // defaults to classic theme
       '#options' => $themes,
     );
+  }
+  
+  if ($field['type'] == 'node_reference') {
+   
+    $ref_node_type = array_values(array_filter($field['settings']['referenceable_types']));
+
+    // @todo possibly use field_info_fields().
+    // @TODO if there is more than one referenced type, read out image fields of all referenced types
+    $sql = "SELECT 
+              conf.field_name 
+            FROM 
+              field_config as conf 
+              INNER JOIN field_config_instance as inst 
+              ON conf.id = inst.field_id
+            WHERE 
+              inst.bundle = '$ref_node_type[0]' AND 
+              conf.type = 'image' AND
+              conf.deleted = 0";
+    $result = db_query($sql);
+    
+    $image_fields = array();
+    while ($option = $result->fetchAssoc()) {
+       if ($option['field_name'] != 'body') {
+         $image_fields[$option['field_name']] = $option['field_name'];
+       } 
+    }
+    asort($image_fields);
+    
+    if (count($image_fields) == 0) {
+      drupal_set_message('ERROR: The referenced node type does not contain any valid image field(s).', 'error');
+      return FALSE;
+    }
+    elseif (count($image_fields) == 1) {
+      $keys = array_keys($image_fields);
+      $key = $keys[0];
+      $element['galleria_reference_img_src'] = array(
+        '#type' => 'value',
+        '#value' => $image_fields[$key],
+      );
+    }
+    elseif (count($image_fields) > 1) {
+      $element['galleria_reference_img_src'] = array(
+        '#title' => t('Image source field of the referenced content type'),
+        '#type' => 'select',
+        '#default_value' => isset($settings['galleria_reference_img_src']) ? $settings['galleria_reference_img_src'] : '', // defaults to classic theme
+        '#options' => $image_fields,
+      );
+    }
   }
     
   return $element;
@@ -108,11 +157,17 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
     $summary[] = t('Preview image style: Original image');
   }
   
+  // display the name of the selected theme
   if (isset($settings['galleria_theme'])) {
     $summary[] = t('Galleria Theme: @theme', array('@theme' => $settings['galleria_theme']));
   }
   else {
     $summary[] = t('No theme selected, default is "classic"');
+  }
+  
+  // display the image source field if the formatter is used on a reference field
+  if (isset($settings['galleria_reference_img_src'])) {
+    $summary[] = t('Image field of the referenced node: @field', array('@field' => $settings['galleria_reference_img_src']));
   }
   
   return implode('<br />', $summary);
@@ -126,6 +181,12 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
 function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
   
+  if ($field['type'] == 'node_reference') {
+    $field_name = $display['settings']['galleria_reference_img_src'];
+    $items = array();
+    $items = galleria_get_referenced_images($field_name);
+  }
+
   if (count($items) > 0) {
     $element['#theme'] = 'galleria_container';
     galleria_includes($display['settings']['galleria_theme']);
@@ -152,6 +213,27 @@ function galleria_field_formatter_view($entity_type, $entity, $field, $instance,
   return $element;
 }
 
+function galleria_get_referenced_images($field) {
+  if (!$field) {
+    drupal_set_message('ERROR: The referenced field does not contain any image field.', 'error');
+    return FALSE;
+  }
+  
+  $fid_col_name = $field . '_fid';
+  $alt_col_name = $field . '_alt';
+  $title_col_name = $field . '_title';
+  $result = db_query('SELECT ' . $fid_col_name . ',' . $alt_col_name . ',' . $title_col_name . ' FROM field_data_' . $field);
+  
+  $images = array();
+  while($row = $result->fetchAssoc()) {
+    $image = (array) file_load($row[$fid_col_name]);
+    $image['alt'] = $row[$alt_col_name];
+    $image['title'] = $row[$title_col_name];
+    $images[] = $image;
+  }
+  
+  return $images;
+}
 /*
  * This function includes the neccessary JS and CSS files only once
  */
@@ -188,7 +270,7 @@ function galleria_includes($theme) {
     }
     else {
       // no library exists, output error
-      drupal_set_message('Error: The Galleria Javascript library was not found in sites/all/libraries. Please refer to README.txt for installation instructions.', 'error');
+      drupal_set_message('ERROR: The Galleria Javascript library was not found in sites/all/libraries. Please refer to README.txt for installation instructions.', 'error');
     }
   }
 }
@@ -214,7 +296,7 @@ function galleria_theme() {
  * 
  * Provides default image style presets that can be overridden by site administrators.
  */
- function galleria_image_default_styles() {
+function galleria_image_default_styles() {
   $styles = array();
 
   // image preset for the big image
