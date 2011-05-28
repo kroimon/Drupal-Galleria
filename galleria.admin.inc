@@ -107,6 +107,20 @@ function galleria_admin_settings() {
     '#default_value' => variable_get('galleria_autoplay', 0),
   );
   
+  $galleria_imagecrop_options = array(
+    'on'   => 'Crop',
+    'off'  => 'No Crop',
+    'height' => 'Crop horizontally, fill the height',
+    'width'  => 'Crop vertically, fill the width',
+  );
+  $form['galleria_imagecrop'] = array(
+    '#type' => 'radios',
+    '#title' => t('Cropping'),
+    '#description' => t('Defines how the main image will be cropped inside it’s container.'),
+    '#options' => $galleria_imagecrop_options,
+    '#default_value' => variable_get('galleria_imagecrop', 'true'),
+  );
+
   $form['galleria_max_scale_ratio'] = array(
     '#type' => 'textfield',
     '#title' => t('Max Scale Ratio'),
