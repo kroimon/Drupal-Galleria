@@ -395,6 +395,7 @@ function galleria_add_settings() {
           'min_scale_ratio' => variable_get('galleria_min_scale_ratio', 1),
           'show_info'       => (boolean) variable_get('galleria_show_info', TRUE),
           'thumbnails'      => 'on' == $thumbnails? (boolean) TRUE : ('off' == $thumbnails? FALSE : $thumbnails),
+          'imageCrop'       => ('on'==$imagecrop) ? TRUE : (('off'==$imagecrop) ? FALSE : $imagecrop),
         ),
       ),
     ), 
