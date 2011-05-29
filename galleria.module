@@ -377,6 +377,7 @@ function galleria_includes($theme) {
 function galleria_add_settings() {
   // set javascript gallereria options
   $thumbnails = variable_get('galleria_thumbnails', 'on');
+  $imagecrop = variable_get('galleria_imagecrop', 'on');
   
   // add the JS settings, load the values from the config page
   drupal_add_js(
