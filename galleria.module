@@ -341,7 +341,6 @@ function galleria_includes($theme) {
     if (($libpath = libraries_get_path('galleria'))
       && is_dir(libraries_get_path('galleria'))) {
       // include essential files from /libraries/galleria
-      //$js[] = $libpath . '/galleria-1.2.3.min.js';
       $js[] = $libpath . '/galleria-1.2.3.min.js';
       
       // load the theme JS file dynamically

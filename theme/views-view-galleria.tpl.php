@@ -6,6 +6,7 @@
  * @ingroup views_templates
  */
 $field_data_key = 'field_data_' . $galleria_image_source . '_node_values';
+print render($script_container);
 ?>
 <div class="galleria-content clearfix">
   <?php foreach ($rows as $key => $row) : ?>

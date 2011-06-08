@@ -19,5 +19,9 @@ function template_preprocess_views_view_galleria(&$vars) {
   // TODO: read the views style plugin settings or global 
   // galleria settings to find appropriate theme JS and pass
   // that value to galleria_includes()
-  galleria_includes('classic');
+  $includes = galleria_includes('classic');
+  $vars['script_container'] = array(
+    '#markup' => '',
+    '#attached' => $includes,
+  );
 }
