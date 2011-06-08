@@ -8,6 +8,6 @@ dependencies[] = image
 dependencies[] = libraries
 
 files[] = galleria.module
-files[] = galleria.admin.inc
-files[] = views_plugin_style_galleria.inc
+files[] = includes/galleria.admin.inc
+files[] = includes/views_plugin_style_galleria.inc
 

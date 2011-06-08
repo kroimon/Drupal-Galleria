@@ -14,7 +14,7 @@ function galleria_menu() {
   $items['admin/config/media/galleria'] = array(
     'title' => 'Galleria',
     'description' => 'Adjust Galleria settings.',
-    'file' => 'galleria.admin.inc',
+    'file' => 'includes/galleria.admin.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('galleria_admin_settings'),
     'access arguments' => array('administer site configuration'),
@@ -245,7 +245,7 @@ function galleria_theme() {
       'variables' => array(
         'items' => NULL,
       ),
-      'template' => 'galleria-container',
+      'template' => 'theme/galleria-container',
     ),
   );
 }
@@ -341,6 +341,7 @@ function galleria_includes($theme) {
     if (($libpath = libraries_get_path('galleria'))
       && is_dir(libraries_get_path('galleria'))) {
       // include essential files from /libraries/galleria
+      //$js[] = $libpath . '/galleria-1.2.3.min.js';
       $js[] = $libpath . '/galleria-1.2.3.min.js';
       
       // load the theme JS file dynamically
@@ -350,7 +351,7 @@ function galleria_includes($theme) {
         $split = explode('.', $file);
         if ($split[0] == 'galleria' && $split[count($split) - 1] == 'js') {
           // add the theme JS file
-          $js[] = $libpath . '/themes/' . $theme . '/' . $file;
+          $theme_js_file =  base_path() . $libpath . '/themes/' . $theme . '/' . $file;
           break;
         }
       }
@@ -368,7 +369,8 @@ function galleria_includes($theme) {
       $css[] = array('data' => $css_inline, 'type' => 'inline');
       
       // add the global galleria settings and the galleria loader script
-      galleria_add_settings($js);
+      galleria_add_settings($js, $theme_js_file);
+
       $path = drupal_get_path('module', 'galleria');
       $js[] = $path . '/js/galleria.load.js';
       
@@ -390,7 +392,7 @@ function galleria_includes($theme) {
  * adds them into the Drupal.settings.galleria.opt JS object which is
  * read when galleria is loaded 
  */
-function galleria_add_settings(&$js) {
+function galleria_add_settings(&$js, $path) {
   // set javascript gallereria options
   $thumbnails = variable_get('galleria_thumbnails', 'on');
   $imagecrop = variable_get('galleria_imagecrop', 'on');
@@ -412,7 +414,10 @@ function galleria_add_settings(&$js) {
         'show_info'       => (boolean) variable_get('galleria_show_info', TRUE),
         'thumbnails'      => ('on'==$thumbnails) ? TRUE : (('off'==$thumbnails) ? FALSE : $thumbnails),
         'imageCrop'       => ('on'==$imagecrop) ? TRUE : (('off'==$imagecrop) ? FALSE : $imagecrop),
-  )));
+      ),
+      'themepath' => $path,
+    ),
+  );
   // add the JS settings, load the values from the config page
   $js[] = array('data' => $js_settings, 'type' => 'setting');
 }
