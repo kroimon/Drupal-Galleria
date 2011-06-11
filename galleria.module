@@ -35,6 +35,7 @@ function galleria_field_formatter_info() {
       'label' => t('Galleria'),
       'field types' => array('image', 'node_reference'),
       'settings' => array(
+        'galleria_big_style' => '',
         'galleria_zoom_style' => '',
         'galleria_thumb_style' => '',
         'galleria_theme' => 'classic',
@@ -57,6 +58,13 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
   
   // shows 2 select boxes for the big image style and thumbnail style
   $image_styles = image_style_options(FALSE);
+  $element['galleria_big_style'] = array(
+    '#title' => t('Big image style (for lightbox or fullscreen theme)'),
+    '#type' => 'select',
+    '#default_value' => $settings['galleria_big_style'],
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+  );
   $element['galleria_zoom_style'] = array(
     '#title' => t('Zoomed image style'),
     '#type' => 'select',
@@ -161,6 +169,13 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
   unset($image_styles['']);
   // Styles could be lost because of enabled/disabled modules that defines
   // their styles in code.
+  if (isset($image_styles[$settings['galleria_big_style']])) {
+    $summary[] = t('Big image style: @style', array('@style' => $image_styles[$settings['galleria_big_style']]));
+  }
+  else {
+    $summary[] = t('Big image style: Original image');
+  }
+
   if (isset($image_styles[$settings['galleria_zoom_style']])) {
     $summary[] = t('Zoomed image style: @style', array('@style' => $image_styles[$settings['galleria_zoom_style']]));
   }
@@ -197,34 +212,52 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
  * Prepares a renderable array of images and adds the neccessary JS and CSS
  */
 function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $settings = $display['settings'];
   $element = array();
   
   if ($field['type'] == 'node_reference') {
-    $field_name = $display['settings']['galleria_reference_img_src'];
+    $field_name = $settings['galleria_reference_img_src'];
     $items = array();
     $items = galleria_get_referenced_images($field_name);
   }
 
   if (count($items) > 0) {
     $element['#theme'] = 'galleria_container';
-    $element['#attached'] = galleria_includes($display['settings']['galleria_theme']);
+    $element['#attached'] = galleria_includes($settings['galleria_theme']);
   }
  
   foreach ($items as $delta => $item) {
-    if (empty($display['settings']['galleria_zoom_style'])) {
+    if (empty($settings['galleria_zoom_style'])) {
        $zoom_url = file_create_url($item['uri']);
     }
     else {
-       $zoom_url = image_style_url($display['settings']['galleria_zoom_style'], $item['uri']);
+       $zoom_url = image_style_url($settings['galleria_zoom_style'], $item['uri']);
     }
 
+    if (empty($settings['galleria_big_style'])) {
+      $big_url = file_create_url($item['uri']);
+    }
+    elseif ($settings['galleria_big_style'] != $settings['galleria_zoom_style']) {
+      $big_url = image_style_url($settings['galleria_big_style'], $item['uri']);
+    }
+
+    if (!empty($big_url)) {
+      $options = array(
+        'attributes' => array(
+          'rel' => $big_url,
+        )
+      );
+    }
+    else {
+      $options = array();
+    }
     $element['#items'][$delta] = array(
       '#theme' => 'image_formatter',
       '#item' => $item,
       '#image_style' => $display['settings']['galleria_thumb_style'],
       '#path' => array(
          'path' => $zoom_url,
-         'options' => array(),
+         'options' => $options,
       ),
     );
   }
