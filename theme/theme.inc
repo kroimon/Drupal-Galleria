@@ -14,7 +14,8 @@
 function template_preprocess_views_view_galleria(&$vars) {
 
   // extract the field name of the image containing field
-  $vars['galleria_image_source'] = $vars['view']->field['field_imagetest']->field_info['field_name'];
+  $img_field_name = array_keys($vars['view']->field);
+  $vars['galleria_image_source'] = $img_field_name[0];
   
   // TODO: read the views style plugin settings or global 
   // galleria settings to find appropriate theme JS and pass
