@@ -14,7 +14,7 @@ print render($script_container);
       $lang = $row->_field_data['nid']['entity']->language;
       $img_data = $row->_field_data['nid']['entity']->{$galleria_image_source}[$lang][0];
       echo '
-      <div class="field-item">BLA
+      <div class="field-item">
         <img src="' . file_create_url($img_data['uri']) . '" 
              title="' . $img_data['title'] . '" 
              alt="' . $img_data['alt'] . '" 
