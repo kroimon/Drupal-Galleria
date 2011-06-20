@@ -340,8 +340,16 @@ function galleria_includes($theme) {
 
     if (($libpath = libraries_get_path('galleria'))
       && is_dir(libraries_get_path('galleria'))) {
+
       // include essential files from /libraries/galleria
-      $js[] = $libpath . '/galleria-1.2.3.min.js';
+      $libfiles = glob($libpath . '/galleria-*.min.js');
+      if (count($libfiles) > 0) {
+        rsort($libfiles); // to use the newest version if there's more than one
+        $js[] = $libfiles[0];
+      } else {
+        // library javascript not found, output error
+        drupal_set_message(t('ERROR: The Galleria Javascript file was not found in its path. Please refer to README.txt for installation instructions.'), 'error');
+      }
       
       // load the theme JS file dynamically
       $dir_handle = opendir($libpath . '/themes/' . $theme . '/');
