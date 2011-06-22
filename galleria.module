@@ -36,8 +36,8 @@ function galleria_field_formatter_info() {
       'field types' => array('image', 'node_reference'),
       'settings' => array(
         'galleria_big_style' => '',
-        'galleria_zoom_style' => '',
-        'galleria_thumb_style' => '',
+        'galleria_zoom_style' => 'galleria_zoom',
+        'galleria_thumb_style' => 'galleria_thumb',
         'galleria_theme' => 'classic',
         'galleria_reference_img_src' => NULL,
       ),
