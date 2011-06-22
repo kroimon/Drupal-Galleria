@@ -25,4 +25,26 @@ function template_preprocess_views_view_galleria(&$vars) {
     '#markup' => '',
     '#attached' => $includes,
   );
+  
+  // read out the image style that was selected in the image field 
+  // of the view, default to galleria_zoom if none was selected yet
+  $image_style = $vars['view']->field[$img_field_name[0]]->options['settings']['image_style'];
+  $image_style = (empty($image_style)) ? 'galleria_zoom' : $image_style; 
+  
+  // prepare image elements ready to render
+  foreach ($vars['rows'] as $key => $data) {
+    $lang = $data->_field_data['nid']['entity']->language;
+    $item = $data->_field_data['nid']['entity']->{$img_field_name[0]}[$lang][0];
+    $zoom_url = image_style_url($image_style, $item['uri']);
+
+    $vars['galleria_elements']['#items'][$key] = array(
+      '#theme' => 'image_formatter',
+      '#item' => $item,
+      '#image_style' => $image_style,
+      '#path' => array(
+         'path' => $zoom_url,
+         'options' => array(),
+      ),
+    );
+  }
 }

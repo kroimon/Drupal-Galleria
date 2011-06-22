@@ -23,8 +23,6 @@ function galleria_menu() {
   return $items;
 }
 
-
-
 /**
  * Implementation of hook_field_formatter_info().
  * 
