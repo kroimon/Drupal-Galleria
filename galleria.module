@@ -66,14 +66,14 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     '#options' => $image_styles,
   );
   $element['galleria_zoom_style'] = array(
-    '#title' => t('Zoomed image style'),
+    '#title' => t('Normal image style'),
     '#type' => 'select',
     '#default_value' => $settings['galleria_zoom_style'],
     '#empty_option' => t('None (original image)'),
     '#options' => $image_styles,
   );
   $element['galleria_thumb_style'] = array(
-    '#title' => t('Preview image style'),
+    '#title' => t('Thumbnail image style'),
     '#type' => 'select',
     '#default_value' => $settings['galleria_thumb_style'],
     '#empty_option' => t('None (original image)'),
@@ -169,27 +169,15 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
   unset($image_styles['']);
   // Styles could be lost because of enabled/disabled modules that defines
   // their styles in code.
-  if (isset($image_styles[$settings['galleria_big_style']])) {
-    $summary[] = t('Big image style: @style', array('@style' => $image_styles[$settings['galleria_big_style']]));
-  }
-  else {
-    $summary[] = t('Big image style: Original image');
-  }
+  $style = isset($image_styles[$settings['galleria_big_style']]) ? $image_styles[$settings['galleria_big_style']] : t('Original image');
+  $summary[] = t('Big image style: @style', array('@style' => $style));
 
-  if (isset($image_styles[$settings['galleria_zoom_style']])) {
-    $summary[] = t('Zoomed image style: @style', array('@style' => $image_styles[$settings['galleria_zoom_style']]));
-  }
-  else {
-    $summary[] = t('Zoomed image style: Original image');
-  }
+  $style = isset($image_styles[$settings['galleria_zoom_style']]) ? $image_styles[$settings['galleria_zoom_style']] : t('Original image');
+  $summary[] = t('Normal image style: @style', array('@style' => $style));
 
-  if (isset($image_styles[$settings['galleria_thumb_style']])) {
-    $summary[] = t('Preview image style: @style', array('@style' => $image_styles[$settings['galleria_thumb_style']]));
-  }
-  else {
-    $summary[] = t('Preview image style: Original image');
-  }
-  
+  $style = isset($image_styles[$settings['galleria_thumb_style']]) ? $image_styles[$settings['galleria_thumb_style']] : t('Original image');
+  $summary[] = t('Thumbnail image style: @style', array('@style' => $style));
+
   // display the name of the selected theme
   if (isset($settings['galleria_theme'])) {
     $summary[] = t('Galleria Theme: @theme', array('@theme' => $settings['galleria_theme']));
