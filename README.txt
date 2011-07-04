@@ -3,7 +3,6 @@ MISSING Features FROM D6
 
 - No jCarousel support
 - No Lightbox2 support (missing dep)
-- No administer settings page
 - No administer permission
 - No galleria messages
 - Also note that images within a private dir will not be processed yet
@@ -15,14 +14,19 @@ TODO's
 
 - Support images from non public directories
 - Solve further issues from the module page on drupal.org/project/galleria
+- Add media project support
 
 HOWTO install galleria
 ----------------------
 
-1. Download the Galleria Javascript library from http://galleria.aino.se/download/ and
+1. Make sure you have downloaded dependencies
+   Library:
+   http://drupal.org/project/library
+
+2. Download the Galleria Javascript library from http://galleria.aino.se/download/ and
    extract the galleria folder into your /sites/all/libraries/ directory.
 
-2. Download and save the galleria module folder into your /sites/all/modules/ directory and 
+3. Download and save the galleria module folder into your /sites/all/modules/ directory and 
    enable the Galleria module.
 
 HOWTO use Galleria
