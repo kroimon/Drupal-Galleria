@@ -5,18 +5,50 @@
  */
 
 /**
- * Implements hook_uninstall().
+ * Implements hook_schema().
  */
-function galleria_uninstall() {
-  variable_del('galleria_transition');
-  variable_del('galleria_overlay_opacity');
-  variable_del('galleria_show_imagenav');
-  variable_del('galleria_clicknext');
-  variable_del('galleria_queue');
-  variable_del('galleria_preload');
-  variable_del('galleria_show_counter');
-  variable_del('galleria_autoplay');
-  variable_del('galleria_max_scale_ratio');
-  variable_del('galleria_min_scale_ratio');
-  variable_del('galleria_show_info');
+function galleria_schema() {
+  return array(
+    'galleria_optionset' => array(
+      'description' => 'Store option sets for Galleria instances.',
+      'fields' => array(
+        'name' => array(
+          'description' => 'The machine-readable option set name.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+        'title' => array(
+          'description' => 'The human-readable title for this option set.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+        'options' => array(
+          'description' => 'The options array.',
+          'type' => 'blob',
+          'size' => 'big',
+          'serialize' => TRUE,
+        ),
+      ),
+      'primary key' => array('name'),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_install().
+ * Adds a 'default' option set.
+ */
+function galleria_install() {
+  $optionset = array(
+    'name' => 'default',
+    'title' => 'Default',
+    'options' => array(
+      'height' => 300,
+      'width' => 450,
+    ),
+  );
+  galleria_optionset_save($optionset, TRUE);
 }

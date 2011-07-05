@@ -17,11 +17,11 @@ function template_preprocess_views_view_galleria(&$vars) {
 
   // TODO: read the views style plugin settings or global
   // galleria settings to find appropriate theme JS and pass
-  // that value to galleria_includes()
-  $includes = galleria_includes('classic');
+  // that value to galleria_attachments()
+  $attachments = galleria_attachments('classic');
   $vars['script_container'] = array(
     '#markup' => '',
-    '#attached' => $includes,
+    '#attached' => $attachments,
   );
 
   // read out the image style that was selected in the image field

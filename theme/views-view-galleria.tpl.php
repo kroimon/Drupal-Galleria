@@ -15,7 +15,7 @@ print render($script_container);
     }
   }
   else {
-    drupal_set_message('ERROR: No images were found, please check your view results.', 'error');
+    drupal_set_message('No images were found, please check your view results.', 'error');
   }
 ?>
 </div>

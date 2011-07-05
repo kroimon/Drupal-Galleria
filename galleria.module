@@ -12,10 +12,51 @@ function galleria_menu() {
 
   $items['admin/config/media/galleria'] = array(
     'title' => 'Galleria',
-    'description' => 'Adjust Galleria settings.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('galleria_admin_settings'),
+    'description' => 'Configure Galleria image galleries.',
+    'page callback' => 'galleria_page_optionset_list',
     'access arguments' => array('administer site configuration'),
+    'file' => 'includes/galleria.admin.inc',
+  );
+  $items['admin/config/media/galleria/list'] = array(
+    'title' => 'Option sets',
+    'description' => 'List the current Galleria option sets.',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['admin/config/media/galleria/add'] = array(
+    'title' => 'Add option set',
+    'description' => 'Add a new Galleria option set.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('galleria_form_optionset_add'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 1,
+    'file' => 'includes/galleria.admin.inc',
+  );
+  $items['admin/config/media/galleria/edit/%galleria_optionset'] = array(
+    'title' => 'Edit option set',
+    'description' => 'Configure an option set.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('galleria_form_optionset_edit', 5),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/galleria.admin.inc',
+  );
+  $items['admin/config/media/galleria/delete/%galleria_optionset'] = array(
+    'title' => 'Delete option set',
+    'description' => 'Delete an option set.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('galleria_optionset_form_delete', 5),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/galleria.admin.inc',
+  );
+  $items['admin/config/media/galleria/advanced'] = array(
+    'title' => 'Advanced settings',
+    'description' => 'Configure the advanced Galleria module settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('galleria_form_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
     'file' => 'includes/galleria.admin.inc',
   );
 
@@ -28,10 +69,12 @@ function galleria_menu() {
 function galleria_theme() {
   return array(
    'galleria_container' => array(
-      'variables' => array(
-        'items' => NULL,
-      ),
+      'variables' => array('items' => array(), 'id' => 0),
       'template' => 'theme/galleria-container',
+    ),
+    'galleria_form_table' => array(
+      'render element' => 'form',
+      'file' => 'includes/galleria.admin.inc',
     ),
   );
 }
@@ -78,8 +121,136 @@ function galleria_image_default_styles() {
 function galleria_views_api() {
   return array(
     'api' => 3,
-    'path' => drupal_get_path('module', 'galleria'),
   );
+}
+
+
+/**
+ * Fetches all option sets from the database and returns them as an associative array.
+ */
+function galleria_optionsets() {
+  $optionsets = db_query("SELECT * FROM {galleria_optionset}")->fetchAllAssoc('name', PDO::FETCH_ASSOC);
+  foreach ($optionsets as &$optionset) {
+    $optionset['options'] = empty($optionset['options']) ? array() : unserialize($optionset['options']);
+  }
+  return $optionsets;
+}
+
+/**
+ * Fetches the given option set and returns it as an associative array or FALSE, if no set could be found.
+ */
+function galleria_optionset_load($optionset_name) {
+  $optionset = db_query("SELECT * FROM {galleria_optionset} WHERE name = :name", array(':name' => $optionset_name))->fetchAssoc();
+  if ($optionset !== FALSE) {
+    $optionset['options'] = empty($optionset['options']) ? array() : unserialize($optionset['options']);
+  }
+  return $optionset;
+}
+
+/**
+ * Checks whether an option set with the given name already exists.
+ */
+function galleria_optionset_exists($optionset_name) {
+  return (galleria_optionset_load($optionset_name) !== FALSE);
+}
+
+/**
+ * Saves the given option set to the database.
+ * Set the $new flag if this set has not been written before.
+ */
+function galleria_optionset_save($optionset, $new = FALSE) {
+  $optionset += array(
+    'title' => $optionset['name'],
+    'options' => array(),
+  );
+
+  if ($new) {
+    drupal_write_record('galleria_optionset', $optionset);
+  } else {
+    drupal_write_record('galleria_optionset', $optionset, 'name');
+  }
+  return $optionset;
+}
+
+/**
+ * Deletes the given option set from the database.
+ */
+function galleria_optionset_delete($optionset) {
+  db_delete('galleria_optionset')->condition('name', $optionset['name'])->execute();
+  // TODO: update formatters?
+  return TRUE;
+}
+
+
+/*
+ * Returns the JavaScript file of the Galleria core.
+ * Uses a cached filename until this file gets deleted or the cache gets cleared.
+ */
+function galleria_get_library_file() {
+  $cache = cache_get('galleria_lib_file');
+  if (($cache !== FALSE) && file_exists($cache->data))
+    return $cache->data;
+
+  // Search for library file
+  $libpath = libraries_get_path('galleria');
+
+  // Seach for minimized files first.
+  // Sort the found files to use the newest version if there's more than one.
+  $js = glob($libpath . '/galleria-*.min.js');
+  if (count($js) == 0)
+    $js = glob($libpath . '/galleria-*.js');
+
+  if (count($js) > 0) {
+    rsort($js);
+    cache_set('galleria_lib_file', $js[0]);
+    return $js[0];
+  }
+  else {
+    // Could not find JavaScript library
+    return FALSE;
+  }
+}
+
+/**
+ * Searches for available themes inside the Galleria folder.
+ * The list of themes
+ */
+function galleria_get_themes($nocache = FALSE) {
+  if (!$nocache && (($themes = cache_get('galleria_themes')) !== FALSE))
+    return $themes->data;
+
+  $themes = array();
+
+  // Search for theme folders
+  $path = libraries_get_path('galleria') . '/themes/';
+  $path_handle = opendir($path);
+  while (($theme = readdir($path_handle)) !== FALSE) {
+    if (!is_dir($path . $theme) || $theme[0] == '.')
+      continue;
+
+    // Search for the theme JavaScript file, minified version first
+    $js = glob($path . $theme . '/*.min.js');
+    if (count($js) == 0)
+      $js = glob($path . $theme . '/*.js');
+
+    // Sort by filename to (hopefully) get the newest version.
+    if (count($js) > 0) {
+      rsort($js);
+      $themes[$theme] = $js[0];
+    }
+  }
+  closedir($path_handle);
+
+  cache_set('galleria_themes', $themes);
+  return $themes;
+}
+
+/**
+ * Returns the JavaScript file of the given theme, or FALSE if it could not be found.
+ */
+function galleria_get_theme_file($theme) {
+  $themes = galleria_get_themes();
+  return isset($themes[$theme]) ? $themes[$theme] : FALSE;
 }
 
 
@@ -95,6 +266,7 @@ function galleria_field_formatter_info() {
       'label' => t('Galleria'),
       'field types' => array('image', 'node_reference'),
       'settings' => array(
+        'galleria_optionset' => 'default',
         'galleria_theme' => 'classic',
         'galleria_big_style' => '',
         'galleria_zoom_style' => 'galleria_zoom',
@@ -115,7 +287,19 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
-  // shows 2 select boxes for the big image style and thumbnail style
+  // Show select box for the option set
+  $optionsets = array();
+  foreach (galleria_optionsets() as $name => $optionset) {
+    $optionsets[$name] = check_plain($optionset['title']);
+  }
+  $form['galleria_optionset'] = array(
+    '#title' => t('Option set'),
+    '#type' => 'select',
+    '#options' => $optionsets,
+    '#default_value' => $settings['galleria_optionset'],
+  );
+
+  // Show select boxes for the various image styles (thumbnail, normal, big)
   $image_styles = image_style_options(FALSE);
   $form['galleria_big_style'] = array(
     '#type' => 'select',
@@ -139,28 +323,26 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     '#default_value' => $settings['galleria_thumb_style'],
   );
 
-  // get the available themes from the module folder
-  $themes = array();
-  $path = libraries_get_path('galleria');
-  $dir_handle = opendir($path . '/themes/');
-  while ($item = readdir($dir_handle)) {
-    if (is_dir($item) || $item == '.' || $item == '..' || substr($item, 0, 1) == '.') continue;
-    $themes[$item] = $item;
+  // Show the theme select box if there is more than one theme
+  $themes = array_keys(galleria_get_themes(TRUE));
+  if (count($themes) == 1) {
+    $form['galleria_theme'] = array(
+      '#type' => 'value',
+      '#value' => $themes[0],
+    );
   }
-
-  // only show the theme select box if we got more than one theme
-  if (count($themes) > 1) {
+  elseif (count($themes) > 1) {
     asort($themes);
 
-    // show the select box to choose the theme
     $form['galleria_theme'] = array(
       '#type' => 'select',
       '#title' => t('Theme'),
-      '#options' => $themes,
+      '#options' => array_combine($themes, $themes),
       '#default_value' => isset($settings['galleria_theme']) ? $settings['galleria_theme'] : 'classic', // defaults to classic theme
     );
   }
 
+  // Show select box for image fields if we're formatting a node_reference field
   if ($field['type'] == 'node_reference') {
     $ref_node_type = array_values(array_filter($field['settings']['referenceable_types']));
 
@@ -187,7 +369,7 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     asort($image_fields);
 
     if (count($image_fields) == 0) {
-      drupal_set_message(t('ERROR: The referenced node type does not contain any valid image field(s).'), 'error');
+      drupal_set_message(t('The referenced node type does not contain any valid image field(s).'), 'error');
       return FALSE;
     }
     elseif (count($image_fields) == 1) {
@@ -222,31 +404,42 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
 
   $summary = array();
 
+  // Load option set
+  if (!empty($settings['galleria_optionset'])) {
+    $o = galleria_optionset_load($settings['galleria_optionset']);
+    if ($o !== FALSE) {
+      $optionset = $o;
+    }
+  }
+
+  // Load image styles
   $image_styles = image_style_options(FALSE);
   // Unset possible 'No defined styles' option.
   unset($image_styles['']);
-  // Styles could be lost because of enabled/disabled modules that defines
-  // their styles in code.
+
+  // Build settings summary
+  $optionset = isset($optionset) ? $optionset['title'] : t('Default settings');
+  $summary[] = t('Galleria option set: %optionset', array('%optionset' => $optionset));
+
+  // Styles could be lost because of enabled/disabled modules that define their styles in code.
   $style = isset($image_styles[$settings['galleria_big_style']]) ? $image_styles[$settings['galleria_big_style']] : t('Original image');
-  $summary[] = t('Big image style: @style', array('@style' => $style));
+  $summary[] = t('Big image style: %style', array('%style' => $style));
 
   $style = isset($image_styles[$settings['galleria_zoom_style']]) ? $image_styles[$settings['galleria_zoom_style']] : t('Original image');
-  $summary[] = t('Normal image style: @style', array('@style' => $style));
+  $summary[] = t('Normal image style: %style', array('%style' => $style));
 
   $style = isset($image_styles[$settings['galleria_thumb_style']]) ? $image_styles[$settings['galleria_thumb_style']] : t('Original image');
-  $summary[] = t('Thumbnail image style: @style', array('@style' => $style));
+  $summary[] = t('Thumbnail image style: %style', array('%style' => $style));
 
-  // display the name of the selected theme
   if (isset($settings['galleria_theme'])) {
-    $summary[] = t('Galleria Theme: @theme', array('@theme' => $settings['galleria_theme']));
+    $summary[] = t('Galleria Theme: %theme', array('%theme' => $settings['galleria_theme']));
   }
   else {
     $summary[] = t('No theme selected, default is "classic"');
   }
 
-  // display the image source field if the formatter is used on a reference field
   if (isset($settings['galleria_reference_img_src'])) {
-    $summary[] = t('Image field of the referenced node: @field', array('@field' => $settings['galleria_reference_img_src']));
+    $summary[] = t('Image field of the referenced node: %field', array('%field' => $settings['galleria_reference_img_src']));
   }
 
   return implode('<br />', $summary);
@@ -259,63 +452,71 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
  */
 function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
-  $element = array();
 
   if ($field['type'] == 'node_reference') {
     $items = galleria_get_referenced_images($settings['galleria_reference_img_src']);
   }
 
   if (count($items) > 0) {
-    $element['#theme'] = 'galleria_container';
-    $element['#attached'] = galleria_includes($settings['galleria_theme']);
-  }
+    // Each Galleria instance gets a unique id
+    $element_id = &drupal_static(__FUNCTION__, 0);
+    $element = array(
+      '#id' => ++$element_id,
+      '#theme' => 'galleria_container',
+      '#attached' => galleria_attachments($element_id, $settings),
+    );
 
-  foreach ($items as $delta => $item) {
-    if (empty($settings['galleria_zoom_style'])) {
-       $zoom_url = file_create_url($item['uri']);
-    }
-    else {
-       $zoom_url = image_style_url($settings['galleria_zoom_style'], $item['uri']);
-    }
+    foreach ($items as $delta => $item) {
+      // Get URL for "normal" image
+      if (empty($settings['galleria_zoom_style'])) {
+         $zoom_url = file_create_url($item['uri']);
+      }
+      else {
+         $zoom_url = image_style_url($settings['galleria_zoom_style'], $item['uri']);
+      }
 
-    if (empty($settings['galleria_big_style'])) {
-      $big_url = file_create_url($item['uri']);
-    }
-    elseif ($settings['galleria_big_style'] != $settings['galleria_zoom_style']) {
-      $big_url = image_style_url($settings['galleria_big_style'], $item['uri']);
-    }
+      // Get URL for "big" image (for lightbox and fullscreen)
+      if (empty($settings['galleria_big_style'])) {
+        $big_url = file_create_url($item['uri']);
+      }
+      elseif ($settings['galleria_big_style'] != $settings['galleria_zoom_style']) {
+        $big_url = image_style_url($settings['galleria_big_style'], $item['uri']);
+      }
 
-    if (!empty($big_url)) {
-      $options = array(
-        'attributes' => array(
-          'rel' => $big_url,
-        )
+      if (!empty($big_url)) {
+        $options = array(
+          'attributes' => array(
+            'rel' => $big_url,
+          )
+        );
+      }
+      else {
+        $options = array();
+      }
+      $element['#items'][$delta] = array(
+        '#theme' => 'image_formatter',
+        '#item' => $item,
+        '#image_style' => $display['settings']['galleria_thumb_style'],
+        '#path' => array(
+           'path' => $zoom_url,
+           'options' => $options,
+        ),
       );
     }
-    else {
-      $options = array();
-    }
-    $element['#items'][$delta] = array(
-      '#theme' => 'image_formatter',
-      '#item' => $item,
-      '#image_style' => $display['settings']['galleria_thumb_style'],
-      '#path' => array(
-         'path' => $zoom_url,
-         'options' => $options,
-      ),
-    );
+
+    return $element;
   }
-
-  return $element;
+  else {
+    return array();
+  }
 }
-
 
 /*
  * This function returns all images of an image field whose name is passed in argument $field
  */
 function galleria_get_referenced_images($field) {
-  if (!$field) {
-    drupal_set_message(t('ERROR: The referenced field does not contain any image field.'), 'error');
+  if (empty($field)) {
+    drupal_set_message(t('The referenced field does not contain any image field.'), 'error');
     return FALSE;
   }
 
@@ -336,118 +537,71 @@ function galleria_get_referenced_images($field) {
 }
 
 /*
- * This function includes the neccessary JS and CSS files only once
+ * This function attaches the required JavaScripts and settings to the Galleria element.
  */
-function galleria_includes($theme) {
-  static $included = FALSE;
+function galleria_attachments($id, $settings) {
+  // Static array to remember which options and scripts are already attached.
+  $cache = &drupal_static(__FUNCTION__, array());
 
-  // make sure we only include once
-  if (!$included) {
-    $js = $css = array();
-    $path = drupal_get_path('module', 'galleria');
-    $js[] = array(
-      'data' => array(
-        'galleria' => array(
-          'path' => $path,
-      )),
-      'type' => 'setting',
-    );
-
-    if (($libpath = libraries_get_path('galleria'))
-      && is_dir(libraries_get_path('galleria'))) {
-
-      // handle the galleria core library include
-      // read the file only once, then cache it
-      if ( ! variable_get('galleria_lib_file', FALSE)) {
-        // include essential files from /libraries/galleria
-        $libfiles = glob($libpath . '/galleria-*.min.js');
-        if (count($libfiles) > 0) {
-          rsort($libfiles); // to use the newest version if there's more than one
-          $js[] = $libfiles[0];
-        } else {
-          // library javascript not found, output error
-          drupal_set_message(t('ERROR: The Galleria Javascript file was not found in its path. Please refer to README.txt for installation instructions.'), 'error');
-        }
-        variable_set('galleria_lib_file', $libfiles[0]);
-      }
-      else { // read the already cached file
-        $js[] = variable_get('galleria_lib_file', FALSE);
-      }
-
-      // load the theme JS file dynamically
-      $dir_handle = opendir($libpath . '/themes/' . $theme . '/');
-      // @todo store the theme file, not the theme name
-      while ($file = readdir($dir_handle)) {
-        $split = explode('.', $file);
-        if ($split[0] == 'galleria' && $split[count($split) - 1] == 'js') {
-          // add the theme JS file
-          $theme_js_file =  base_path() . $libpath . '/themes/' . $theme . '/' . $file;
-          break;
-        }
-      }
-
-      // add some css theming stuff
-      $css_inline  = '.galleria-content {';
-      if ($px_x = variable_get('galleria_width', 450)) {
-        $css_inline .= ' width: ' . (integer)$px_x . 'px;';
-      }
-      if ($px_y = variable_get('galleria_height', 300)) {
-        $css_inline .= ' height: ' . (integer)$px_y . 'px;';
-      }
-      $css_inline .= '  margin:0px auto;';
-      $css_inline .= ' }';
-      $css[] = array('data' => $css_inline, 'type' => 'inline');
-
-      // add the global galleria settings and the galleria loader script
-      galleria_add_settings($js, $theme_js_file);
-
-      $path = drupal_get_path('module', 'galleria');
-      $js[] = $path . '/js/galleria.load.js';
-
+  // Library JavaScript
+  //   Cache this filename to prevent multiple file_exists() calls.
+  if (!isset($cache['lib'])) {
+    $lib = galleria_get_library_file();
+    if ($lib === FALSE) {
+      drupal_set_message(t('The Galleria JavaScript file was not found in its path. Please refer to README.txt for installation instructions.'), 'error');
+      return array();
     }
-    else {
-      // no library exists, output error
-      // @todo implement hook_requirements to announce this error.
-      drupal_set_message(t('ERROR: The Galleria Javascript library was not found in sites/all/libraries. Please refer to README.txt for installation instructions.'), 'error');
-    }
-    $included = TRUE;
-    return array('js' => $js, 'css' => $css);
+    $cache['lib'] = $lib;
   }
-  // Return an empty array if already included
-  return array();
-}
+  $js[] = $cache['lib'];
 
-/*
- * This function loads the configured settings of the config page and
- * adds them into the Drupal.settings.galleria.opt JS object which is
- * read when galleria is loaded
- */
-function galleria_add_settings(&$js, $path) {
-  // set javascript gallereria options
-  $thumbnails = variable_get('galleria_thumbnails', 'on');
-  $imagecrop = variable_get('galleria_imagecrop', 'on');
-  $autoplay = variable_get('galleria_autoplay', 0);
+  // Theme
+  //   As it's only possible to use one theme per page, use the first one we get for everything.
+  if (empty($cache['theme'])) {
+    $theme = (!empty($settings['galleria_theme'])) ? $settings['galleria_theme'] : 'classic';
+    $theme_file = galleria_get_theme_file($theme);
+    if (($theme_file === FALSE) && ($theme !== 'classic')) {
+      // Try to fall back to classic theme, the other one might have been deleted.
+      $theme_file = galleria_get_theme_file('classic');
+    }
+    $cache['theme'] = $theme_file;
+  }
+  if (!empty($cache['theme'])) {
+    $js[] = $cache['theme'];
+  }
 
-  $js_settings = array(
-    'galleria' => array(
-      'opt' => array(
-        'transition'      => variable_get('galleria_transition', 'fade'),
-        'overlay_opacity' => variable_get('galleria_overlay_opacity', 0.85),
-        'show_imagenav'   => (boolean) variable_get('galleria_show_imagenav', TRUE),
-        'clicknext'       => (boolean) variable_get('galleria_clicknext', TRUE),
-        'queue'           => (boolean) variable_get('galleria_queue', TRUE),
-        'preload'         => variable_get('galleria_preload', 3),
-        'show_counter'    => (boolean) variable_get('galleria_show_counter', TRUE),
-        'autoplay'        => (0!=$autoplay) ? $autoplay : NULL,
-        'max_scale_ratio' => variable_get('galleria_max_scale_ratio', 1),
-        'min_scale_ratio' => variable_get('galleria_min_scale_ratio', 1),
-        'show_info'       => (boolean) variable_get('galleria_show_info', TRUE),
-        'thumbnails'      => ('on'==$thumbnails) ? TRUE : (('off'==$thumbnails) ? FALSE : $thumbnails),
-        'imageCrop'       => ('on'==$imagecrop) ? TRUE : (('off'==$imagecrop) ? FALSE : $imagecrop),
+  // Option set
+  if (!empty($settings['galleria_optionset'])) {
+    $optionset = galleria_optionset_load($settings['galleria_optionset']);
+  }
+  if (empty($optionset)) {
+    // Try to fall back to 'default' option set
+    $optionset = galleria_optionset_load('default');
+  }
+  if (!empty($optionset)) {
+    $js_settings = array(
+      'optionsets' => array(
+        $optionset['name'] => $optionset['options'],
       ),
-      'themepath' => $path,
-    ),
+      'instances' => array(
+        $id => $optionset['name'],
+      ),
+    );
+  }
+  else {
+    $js_settings = array(
+      'instances' => array(
+        $id => FALSE,
+      ),
+    );
+  }
+  $js[] = array(
+    'type' => 'setting',
+    'data' => array('galleria' => $js_settings),
   );
-  // add the JS settings, load the values from the config page
-  $js[] = array('data' => $js_settings, 'type' => 'setting');
+
+  // Loader JavaScript
+  $js[] = drupal_get_path('module', 'galleria') . '/js/galleria.load.js';
+
+  return array('js' => $js);
 }
