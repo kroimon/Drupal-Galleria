@@ -8,9 +8,9 @@
 print render($script_container);
 ?>
 <div class="galleria-content clearfix">
-<?php 
+<?php
   if (count($galleria_elements) > 0) {
-    foreach ($galleria_elements as $key => $element) {
+    foreach ($galleria_elements as $element) {
       echo '<div class="field-item">' . print render($element) . '</div>';
     }
   }

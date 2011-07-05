@@ -1,6 +1,4 @@
 <?php
-// $Id:$
-
 /**
  * @file
  * Administrative page callbacks for the galleria module.
@@ -11,7 +9,7 @@
  */
 function galleria_admin_settings() {
   $form = array();
-  
+
   $transition_options = array(
     'fade'      => t('<strong>fade:</strong> <em>crossfade betweens images</em>'),
     'flash'     => t('<strong>flash:</strong> <em>fades into background color between images</em>'),
@@ -26,7 +24,7 @@ function galleria_admin_settings() {
     '#options' => $transition_options,
     '#default_value' => variable_get('galleria_transition', 'fade'),
   );
-  
+
   $thumbnails_options = array(
     'on'      => 'Show thumbnails',
     'off'     => 'No thumbnails',
@@ -40,21 +38,21 @@ function galleria_admin_settings() {
     '#options' => $thumbnails_options,
     '#default_value' => variable_get('galleria_thumbnails', 'on'),
   );
-  
+
   $form['galleria_show_imagenav'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show Imagenav'),
     '#default_value' => variable_get('galleria_show_imagenav', TRUE),
     '#description' => t('Set this to false if you do not wish to display the image navigation (next/prev arrows).'),
   );
-  
+
   $form['galleria_clicknext'] = array(
     '#type' => 'checkbox',
     '#title' => t('clicknext'),
     '#description' => t('This options adds a click event over the stage that navigates to the next image in the gallery. Useful for mobile browsers and other simpler applications. Note that setting this to true will disable any other links that you might have in the data object.'),
     '#default_value' => variable_get('galleria_clicknext', TRUE),
   );
-  
+
   $form['galleria_queue'] = array(
     '#type' => 'checkbox',
     '#title' => t('queue'),
@@ -62,20 +60,20 @@ function galleria_admin_settings() {
     '#default_value' => variable_get('galleria_queue', TRUE),
   );
 
-  
+
   $form['galleria_show_counter'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show Counter'),
     '#default_value' => variable_get('galleria_show_counter', TRUE),
   );
-  
+
   $form['galleria_show_info'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show Info'),
     '#description' => t('Disable this if you do not wish to display the caption.'),
     '#default_value' => variable_get('galleria_show_info', TRUE),
-  );  
-  
+  );
+
   $form['galleria_width'] = array(
     '#type' => 'textfield',
     '#title' => t('Width'),
@@ -83,7 +81,7 @@ function galleria_admin_settings() {
     '#element_validate' => array('_galleria_validate_numeric_element'),
     '#default_value' => variable_get('galleria_width', 450),
   );
-  
+
   $form['galleria_height'] = array(
     '#type' => 'textfield',
     '#title' => t('Height'),
@@ -91,7 +89,7 @@ function galleria_admin_settings() {
     '#element_validate' => array('_galleria_validate_numeric_element'),
     '#default_value' => variable_get('galleria_height', 300),
   );
-  
+
   $form['galleria_preload'] = array(
     '#type' => 'textfield',
     '#title' => t('Preload'),
@@ -99,14 +97,14 @@ function galleria_admin_settings() {
     '#element_validate' => array('_galleria_validate_numeric_element'),
     '#default_value' => variable_get('galleria_preload', 3),
   );
-  
+
   $form['galleria_autoplay'] = array(
     '#type' => 'textfield',
     '#title' => t('Autoplay'),
     '#description' => t('Sets Galleria to play slidehow when initialized. Value in milliseconds, for example 5000 will move forward every 5 seconds. 0 will disable autoplay'),
     '#default_value' => variable_get('galleria_autoplay', 0),
   );
-  
+
   $galleria_imagecrop_options = array(
     'on'   => 'Crop',
     'off'  => 'No Crop',
@@ -128,7 +126,7 @@ function galleria_admin_settings() {
     '#element_validate' => array('_galleria_validate_numeric_element'),
     '#default_value' => variable_get('galleria_max_scale_ratio', 1),
   );
-  
+
   $form['galleria_min_scale_ratio'] = array(
     '#type' => 'textfield',
     '#title' => t('Min Scale Ratio'),
@@ -136,7 +134,7 @@ function galleria_admin_settings() {
     '#element_validate' => array('_galleria_validate_numeric_element'),
     '#default_value' => variable_get('galleria_min_scale_ratio', 1),
   );
-  
+
   $form['galleria_overlay_opacity'] = array(
     '#type' => 'textfield',
     '#title' => t('Overlay Opacity'),
@@ -144,7 +142,7 @@ function galleria_admin_settings() {
     '#element_validate' => array('_galleria_validate_numeric_element'),
     '#default_value' => variable_get('galleria_overlay_opacity', 0.85),
   );
-  
+
   return system_settings_form($form);
 }
 

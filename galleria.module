@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * A light-weight, customizable image gallery plugin for Drupal based on jQuery
@@ -10,76 +9,136 @@
  */
 function galleria_menu() {
   $items = array();
-  
+
   $items['admin/config/media/galleria'] = array(
     'title' => 'Galleria',
     'description' => 'Adjust Galleria settings.',
-    'file' => 'includes/galleria.admin.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('galleria_admin_settings'),
     'access arguments' => array('administer site configuration'),
+    'file' => 'includes/galleria.admin.inc',
   );
-  
+
   return $items;
 }
 
 /**
- * Implementation of hook_field_formatter_info().
- * 
+ * Implements hook_theme().
+ */
+function galleria_theme() {
+  return array(
+   'galleria_container' => array(
+      'variables' => array(
+        'items' => NULL,
+      ),
+      'template' => 'theme/galleria-container',
+    ),
+  );
+}
+
+/**
+ * Implements hook_image_default_styles().
+ *
+ * Provides default image style presets that can be overridden by site administrators.
+ */
+function galleria_image_default_styles() {
+  $styles = array();
+
+  // image preset for the big image
+  $styles['galleria_zoom'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array('width' => 450, 'height' => 300, 'upscale' => 1),
+        'weight' => 0,
+      ),
+    )
+  );
+
+  // image preset for thumbnails
+  $styles['galleria_thumb'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array('width' => 50, 'height' => 40, 'upscale' => 1),
+        'weight' => 0,
+      ),
+    )
+  );
+
+  return $styles;
+}
+
+/**
+ * Implements hook_views_api().
+ *
+ * This tells drupal that there is Views integration file named
+ * galleria.views.inc
+ */
+function galleria_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'galleria'),
+  );
+}
+
+
+/**
+ * Implements hook_field_formatter_info().
+ *
  * Adds the Galleria format option within the manage display form of
  * of an image field.
  */
 function galleria_field_formatter_info() {
-  $formatters = array(
+  return array(
     'galleria' => array(
       'label' => t('Galleria'),
       'field types' => array('image', 'node_reference'),
       'settings' => array(
+        'galleria_theme' => 'classic',
         'galleria_big_style' => '',
         'galleria_zoom_style' => 'galleria_zoom',
         'galleria_thumb_style' => 'galleria_thumb',
-        'galleria_theme' => 'classic',
         'galleria_reference_img_src' => NULL,
       ),
     ),
   );
-  return $formatters;
 }
 
 /**
- * Implementation of hook_field_formatter_settings_form().
- * 
- * Provides display settings form within the manage display page of 
+ * Implements hook_field_formatter_settings_form().
+ *
+ * Provides display settings form within the manage display page of
  * an image field with formatter galleria.
  */
 function galleria_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
-  
+
   // shows 2 select boxes for the big image style and thumbnail style
   $image_styles = image_style_options(FALSE);
-  $element['galleria_big_style'] = array(
+  $form['galleria_big_style'] = array(
+    '#type' => 'select',
     '#title' => t('Big image style (for lightbox or fullscreen theme)'),
-    '#type' => 'select',
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
     '#default_value' => $settings['galleria_big_style'],
-    '#empty_option' => t('None (original image)'),
-    '#options' => $image_styles,
   );
-  $element['galleria_zoom_style'] = array(
+  $form['galleria_zoom_style'] = array(
+    '#type' => 'select',
     '#title' => t('Normal image style'),
-    '#type' => 'select',
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
     '#default_value' => $settings['galleria_zoom_style'],
-    '#empty_option' => t('None (original image)'),
-    '#options' => $image_styles,
   );
-  $element['galleria_thumb_style'] = array(
-    '#title' => t('Thumbnail image style'),
+  $form['galleria_thumb_style'] = array(
     '#type' => 'select',
-    '#default_value' => $settings['galleria_thumb_style'],
+    '#title' => t('Thumbnail image style'),
     '#empty_option' => t('None (original image)'),
     '#options' => $image_styles,
+    '#default_value' => $settings['galleria_thumb_style'],
   );
-  
+
   // get the available themes from the module folder
   $themes = array();
   $path = libraries_get_path('galleria');
@@ -88,46 +147,45 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     if (is_dir($item) || $item == '.' || $item == '..' || substr($item, 0, 1) == '.') continue;
     $themes[$item] = $item;
   }
-  
+
   // only show the theme select box if we got more than one theme
   if (count($themes) > 1) {
     asort($themes);
-    
+
     // show the select box to choose the theme
-    $element['galleria_theme'] = array(
-      '#title' => t('Theme'),
+    $form['galleria_theme'] = array(
       '#type' => 'select',
-      '#default_value' => isset($settings['galleria_theme']) ? $settings['galleria_theme'] : 'classic', // defaults to classic theme
+      '#title' => t('Theme'),
       '#options' => $themes,
+      '#default_value' => isset($settings['galleria_theme']) ? $settings['galleria_theme'] : 'classic', // defaults to classic theme
     );
   }
-  
+
   if ($field['type'] == 'node_reference') {
-   
     $ref_node_type = array_values(array_filter($field['settings']['referenceable_types']));
 
     // @todo possibly use field_info_fields().
     // @todo if there is more than one referenced type, read out image fields of all referenced types
-    $sql = "SELECT 
-              conf.field_name 
-            FROM 
-              field_config as conf 
-              INNER JOIN field_config_instance as inst 
+    $sql = "SELECT
+              conf.field_name
+            FROM
+              field_config as conf
+              INNER JOIN field_config_instance as inst
               ON conf.id = inst.field_id
-            WHERE 
-              inst.bundle = '$ref_node_type[0]' AND 
+            WHERE
+              inst.bundle = '$ref_node_type[0]' AND
               conf.type = 'image' AND
               conf.deleted = 0";
     $result = db_query($sql);
-    
+
     $image_fields = array();
     while ($option = $result->fetchAssoc()) {
        if ($option['field_name'] != 'body') {
          $image_fields[$option['field_name']] = $option['field_name'];
-       } 
+       }
     }
     asort($image_fields);
-    
+
     if (count($image_fields) == 0) {
       drupal_set_message(t('ERROR: The referenced node type does not contain any valid image field(s).'), 'error');
       return FALSE;
@@ -135,27 +193,27 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
     elseif (count($image_fields) == 1) {
       $keys = array_keys($image_fields);
       $key = $keys[0];
-      $element['galleria_reference_img_src'] = array(
+      $form['galleria_reference_img_src'] = array(
         '#type' => 'value',
         '#value' => $image_fields[$key],
       );
     }
     elseif (count($image_fields) > 1) {
-      $element['galleria_reference_img_src'] = array(
-        '#title' => t('Image source field of the referenced content type'),
+      $form['galleria_reference_img_src'] = array(
         '#type' => 'select',
-        '#default_value' => isset($settings['galleria_reference_img_src']) ? $settings['galleria_reference_img_src'] : '', // defaults to classic theme
+        '#title' => t('Image source field of the referenced content type'),
         '#options' => $image_fields,
+        '#default_value' => isset($settings['galleria_reference_img_src']) ? $settings['galleria_reference_img_src'] : '', // defaults to classic theme
       );
     }
   }
-    
-  return $element;
+
+  return $form;
 }
 
 /**
- * Implementation of hook_field_formatter_settings_summary().
- * 
+ * Implements hook_field_formatter_settings_summary().
+ *
  * Displays the summary of the set options of a Galleria formatted image field
  */
 function galleria_field_formatter_settings_summary($field, $instance, $view_mode) {
@@ -185,35 +243,33 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
   else {
     $summary[] = t('No theme selected, default is "classic"');
   }
-  
+
   // display the image source field if the formatter is used on a reference field
   if (isset($settings['galleria_reference_img_src'])) {
     $summary[] = t('Image field of the referenced node: @field', array('@field' => $settings['galleria_reference_img_src']));
   }
-  
+
   return implode('<br />', $summary);
 }
 
 /**
- * Implementation of hook_field_formatter_view().
- * 
+ * Implements hook_field_formatter_view().
+ *
  * Prepares a renderable array of images and adds the neccessary JS and CSS
  */
 function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
   $element = array();
-  
+
   if ($field['type'] == 'node_reference') {
-    $field_name = $settings['galleria_reference_img_src'];
-    $items = array();
-    $items = galleria_get_referenced_images($field_name);
+    $items = galleria_get_referenced_images($settings['galleria_reference_img_src']);
   }
 
   if (count($items) > 0) {
     $element['#theme'] = 'galleria_container';
     $element['#attached'] = galleria_includes($settings['galleria_theme']);
   }
- 
+
   foreach ($items as $delta => $item) {
     if (empty($settings['galleria_zoom_style'])) {
        $zoom_url = file_create_url($item['uri']);
@@ -249,70 +305,10 @@ function galleria_field_formatter_view($entity_type, $entity, $field, $instance,
       ),
     );
   }
-    
+
   return $element;
 }
 
-/**
- * Implmentation of hook_theme().
- */
-function galleria_theme() {
- 
-  return array(
-  
-   'galleria_container' => array(
-      'variables' => array(
-        'items' => NULL,
-      ),
-      'template' => 'theme/galleria-container',
-    ),
-  );
-}
-
-/**
- * Implementation of hook_image_default_styles().
- * 
- * Provides default image style presets that can be overridden by site administrators.
- */
-function galleria_image_default_styles() {
-  $styles = array();
-
-  // image preset for the big image
-  $styles['galleria_zoom'] = array(
-    'effects' => array(
-      array(
-        'name' => 'image_scale',
-        'data' => array('width' => 450, 'height' => 300, 'upscale' => 1),
-        'weight' => 0,
-      ),
-    )
-  );
-  
-  // image preset for thumbnails
-  $styles['galleria_thumb'] = array(
-    'effects' => array(
-      array(
-        'name' => 'image_scale',
-        'data' => array('width' => 50, 'height' => 40, 'upscale' => 1),
-        'weight' => 0,
-      ),
-    )
-  );
-
-  return $styles;
-}
-
-/**
- * Implementation of hook_views_api().
- * 
- * Neccessary in order to include the galleria style plugin
- */
-function galleria_views_api() {
-  return array(
-    'api' => 3,
-    'path' => drupal_get_path('module', 'galleria'),
-  );
-}
 
 /*
  * This function returns all images of an image field whose name is passed in argument $field
@@ -322,12 +318,12 @@ function galleria_get_referenced_images($field) {
     drupal_set_message(t('ERROR: The referenced field does not contain any image field.'), 'error');
     return FALSE;
   }
-  
+
   $fid_col_name = $field . '_fid';
   $alt_col_name = $field . '_alt';
   $title_col_name = $field . '_title';
   $result = db_query('SELECT ' . $fid_col_name . ',' . $alt_col_name . ',' . $title_col_name . ' FROM {field_data_' . $field . '}');
-  
+
   $images = array();
   while ($row = $result->fetchAssoc()) {
     $image = (array) file_load($row[$fid_col_name]);
@@ -335,7 +331,7 @@ function galleria_get_referenced_images($field) {
     $image['title'] = $row[$title_col_name];
     $images[] = $image;
   }
-  
+
   return $images;
 }
 
@@ -344,7 +340,7 @@ function galleria_get_referenced_images($field) {
  */
 function galleria_includes($theme) {
   static $included = FALSE;
-  
+
   // make sure we only include once
   if (!$included) {
     $js = $css = array();
@@ -377,7 +373,7 @@ function galleria_includes($theme) {
       else { // read the already cached file
         $js[] = variable_get('galleria_lib_file', FALSE);
       }
-      
+
       // load the theme JS file dynamically
       $dir_handle = opendir($libpath . '/themes/' . $theme . '/');
       // @todo store the theme file, not the theme name
@@ -389,7 +385,7 @@ function galleria_includes($theme) {
           break;
         }
       }
-      
+
       // add some css theming stuff
       $css_inline  = '.galleria-content {';
       if ($px_x = variable_get('galleria_width', 450)) {
@@ -401,13 +397,13 @@ function galleria_includes($theme) {
       $css_inline .= '  margin:0px auto;';
       $css_inline .= ' }';
       $css[] = array('data' => $css_inline, 'type' => 'inline');
-      
+
       // add the global galleria settings and the galleria loader script
       galleria_add_settings($js, $theme_js_file);
 
       $path = drupal_get_path('module', 'galleria');
       $js[] = $path . '/js/galleria.load.js';
-      
+
     }
     else {
       // no library exists, output error
@@ -424,14 +420,14 @@ function galleria_includes($theme) {
 /*
  * This function loads the configured settings of the config page and
  * adds them into the Drupal.settings.galleria.opt JS object which is
- * read when galleria is loaded 
+ * read when galleria is loaded
  */
 function galleria_add_settings(&$js, $path) {
   // set javascript gallereria options
   $thumbnails = variable_get('galleria_thumbnails', 'on');
   $imagecrop = variable_get('galleria_imagecrop', 'on');
   $autoplay = variable_get('galleria_autoplay', 0);
-  
+
   $js_settings = array(
     'galleria' => array(
       'opt' => array(

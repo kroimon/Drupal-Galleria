@@ -1,7 +1,7 @@
 <?php
 
 /**
-  * Implementation of views_plugin_style().
+  * Implements views_plugin_style().
   */
 class views_plugin_style_galleria extends views_plugin_style {
   //TODO: add settings widgets for image styles and theme selection
@@ -11,9 +11,9 @@ class views_plugin_style_galleria extends views_plugin_style {
    */
   function option_definition() {
     $options = parent::option_definition();
-    
+
     $options['back_next_buttons'] = 0;
-    
+
     return $options;
   }
 

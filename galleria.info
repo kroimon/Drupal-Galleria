@@ -10,4 +10,3 @@ dependencies[] = libraries
 files[] = galleria.module
 files[] = includes/galleria.admin.inc
 files[] = includes/views_plugin_style_galleria.inc
-

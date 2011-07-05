@@ -1,6 +1,4 @@
 <?php
-// $Id:$
-
 /**
  * @file theme.inc
  *
@@ -16,8 +14,8 @@ function template_preprocess_views_view_galleria(&$vars) {
   // extract the field name of the image containing field
   $img_field_name = array_keys($vars['view']->field);
   $vars['galleria_image_source'] = $img_field_name[0];
-  
-  // TODO: read the views style plugin settings or global 
+
+  // TODO: read the views style plugin settings or global
   // galleria settings to find appropriate theme JS and pass
   // that value to galleria_includes()
   $includes = galleria_includes('classic');
@@ -25,12 +23,12 @@ function template_preprocess_views_view_galleria(&$vars) {
     '#markup' => '',
     '#attached' => $includes,
   );
-  
-  // read out the image style that was selected in the image field 
+
+  // read out the image style that was selected in the image field
   // of the view, default to galleria_zoom if none was selected yet
   $image_style = $vars['view']->field[$img_field_name[0]]->options['settings']['image_style'];
-  $image_style = (empty($image_style)) ? 'galleria_zoom' : $image_style; 
-  
+  $image_style = (empty($image_style)) ? 'galleria_zoom' : $image_style;
+
   // prepare image elements ready to render
   foreach ($vars['rows'] as $key => $data) {
     $lang = $data->_field_data['nid']['entity']->language;
