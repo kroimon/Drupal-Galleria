@@ -51,9 +51,8 @@ a) Using Galleria with an image/nodereference field in a node:
 b) Using Galleria in a view of image fields
 
     1. Create a view of nodes with an image field. On the "FIELDS" panel in views set the display to "Fields"
-       and add only the single target field (which has to be of type image!). If you have other fields in 
-       the view, make sure the Image field is the FIRST field of the view. Leave the Formatter setting 
-       on "Image", do NOT select galleria. 
+       and add the target field (which has to be of type image!). If you have other fields in 
+       the view, the first image field in the list will be used.
     
     2. On the "FORMAT" Panel choose Galleria as your views display format.
    
