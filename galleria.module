@@ -277,7 +277,7 @@ function galleria_settings_form($settings) {
   $themes = array_keys(galleria_get_themes(TRUE));
   if (count($themes) == 1) {
     $form['galleria_theme'] = array(
-      '#type' => 'value',
+      '#type' => 'hidden',
       '#value' => $themes[0],
     );
   }
@@ -389,7 +389,7 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
       $keys = array_keys($image_fields);
       $key = $keys[0];
       $form['galleria_reference_img_src'] = array(
-        '#type' => 'value',
+        '#type' => 'hidden',
         '#value' => $image_fields[$key],
       );
     }
