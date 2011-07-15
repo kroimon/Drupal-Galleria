@@ -6,43 +6,84 @@
  * functions to make theming easier.
  */
 
-/**
- * Prepares a view to display as a galleria image gallery.
- */
-function template_preprocess_views_view_galleria(&$vars) {
+function template_preprocess_galleria_container(&$vars) {
+  $settings = &$vars['settings'];
 
-  // extract the field name of the image containing field
-  $img_field_name = array_keys($vars['view']->field);
-  $vars['galleria_image_source'] = $img_field_name[0];
+  // Each Galleria instance gets a unique id
+  $galleria_id = &drupal_static('galleria_id', 42);
+  $vars['id'] = ++$galleria_id;
 
-  // TODO: read the views style plugin settings or global
-  // galleria settings to find appropriate theme JS and pass
-  // that value to galleria_attachments()
-  $attachments = galleria_attachments('classic');
-  $vars['script_container'] = array(
-    '#markup' => '',
-    '#attached' => $attachments,
-  );
+  // Attach Galleria JavaScript
+  galleria_add_js($galleria_id, $settings);
 
-  // read out the image style that was selected in the image field
-  // of the view, default to galleria_zoom if none was selected yet
-  $image_style = $vars['view']->field[$img_field_name[0]]->options['settings']['image_style'];
-  $image_style = (empty($image_style)) ? 'galleria_zoom' : $image_style;
+  // Get the items (images) to render
+  if (!empty($vars['view'])) {
+    $items = array();
+    $img_field_name = $vars['img_field_name'];
+    foreach ($vars['rows'] as $key => $data) {
+      $lang = $data->_field_data['nid']['entity']->language;
+      $item = $data->_field_data['nid']['entity']->{$img_field_name}[$lang][0];
+      $items[] = $item;
+    }
+  }
+  else {
+    $items = $vars['items'];
+  }
 
-  // prepare image elements ready to render
-  foreach ($vars['rows'] as $key => $data) {
-    $lang = $data->_field_data['nid']['entity']->language;
-    $item = $data->_field_data['nid']['entity']->{$img_field_name[0]}[$lang][0];
-    $zoom_url = image_style_url($image_style, $item['uri']);
+  // Prepare image elements
+  $vars['items'] = array();
+  foreach ($items as $delta => $item) {
+    $thumb_style = empty($settings['galleria_thumb_style']) ? 'galleria_thumb' : $settings['galleria_thumb_style'];
+    
+    // Get URL for "normal" image
+    if (empty($settings['galleria_zoom_style'])) {
+       $zoom_url = file_create_url($item['uri']);
+    }
+    else {
+       $zoom_url = image_style_url($settings['galleria_zoom_style'], $item['uri']);
+    }
 
-    $vars['galleria_elements']['#items'][$key] = array(
+    // Get URL for "big" image (for lightbox and fullscreen)
+    if (empty($settings['galleria_big_style'])) {
+      $big_url = file_create_url($item['uri']);
+    }
+    elseif ($settings['galleria_big_style'] != $settings['galleria_zoom_style']) {
+      $big_url = image_style_url($settings['galleria_big_style'], $item['uri']);
+    }
+
+    if (!empty($big_url)) {
+      $options = array(
+        'attributes' => array(
+          'rel' => $big_url,
+        )
+      );
+    }
+    else {
+      $options = array();
+    }
+    $vars['items'][$delta] = array(
       '#theme' => 'image_formatter',
       '#item' => $item,
-      '#image_style' => $image_style,
+      '#image_style' => $thumb_style,
       '#path' => array(
          'path' => $zoom_url,
-         'options' => array(),
+         'options' => $options,
       ),
     );
   }
+}
+
+function theme_views_view_galleria($variables) {
+  $items = array();
+  $img_field_name = $variables['img_field_name'];
+  foreach ($variables['rows'] as $row) {
+    $lang = $row->_field_data['nid']['entity']->language;
+    $item = $row->_field_data['nid']['entity']->{$img_field_name}[$lang][0];
+    $items[] = $item;
+  }
+
+  return theme('galleria_container', array(
+    'items' => $items,
+    'settings' => $variables['options'],
+  ));
 }

@@ -69,8 +69,9 @@ function galleria_menu() {
 function galleria_theme() {
   return array(
    'galleria_container' => array(
-      'variables' => array('items' => array(), 'id' => 0),
+      'variables' => array('items' => array(), 'settings' => array()),
       'template' => 'theme/galleria-container',
+      'file' => 'theme/theme.inc',
     ),
     'galleria_form_table' => array(
       'render element' => 'form',
@@ -255,6 +256,71 @@ function galleria_get_theme_file($theme) {
 
 
 /**
+ * Provides a generic settings form for the field formatter and the Views plugin.
+ */
+function galleria_settings_form($settings) {
+  $form = array();
+
+  // Show select box for the option set
+  $optionsets = array();
+  foreach (galleria_optionsets() as $name => $optionset) {
+    $optionsets[$name] = check_plain($optionset['title']);
+  }
+  $form['galleria_optionset'] = array(
+    '#title' => t('Option set'),
+    '#type' => 'select',
+    '#options' => $optionsets,
+    '#default_value' => $settings['galleria_optionset'],
+  );
+
+  // Show the theme select box if there is more than one theme
+  $themes = array_keys(galleria_get_themes(TRUE));
+  if (count($themes) == 1) {
+    $form['galleria_theme'] = array(
+      '#type' => 'value',
+      '#value' => $themes[0],
+    );
+  }
+  elseif (count($themes) > 1) {
+    asort($themes);
+
+    $form['galleria_theme'] = array(
+      '#type' => 'select',
+      '#title' => t('Theme'),
+      '#options' => array_combine($themes, $themes),
+      '#default_value' => isset($settings['galleria_theme']) ? $settings['galleria_theme'] : 'classic', // defaults to classic theme
+    );
+  }
+
+  // Show select boxes for the various image styles (thumbnail, normal, big)
+  $image_styles = image_style_options(FALSE);
+  $form['galleria_big_style'] = array(
+    '#type' => 'select',
+    '#title' => t('Big image style (for lightbox or fullscreen theme)'),
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+    '#default_value' => $settings['galleria_big_style'],
+  );
+  $form['galleria_zoom_style'] = array(
+    '#type' => 'select',
+    '#title' => t('Normal image style'),
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+    '#default_value' => $settings['galleria_zoom_style'],
+  );
+  $form['galleria_thumb_style'] = array(
+    '#type' => 'select',
+    '#title' => t('Thumbnail image style'),
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+    '#default_value' => $settings['galleria_thumb_style'],
+  );
+
+  return $form;
+}
+
+
+/**
  * Implements hook_field_formatter_info().
  *
  * Adds the Galleria format option within the manage display form of
@@ -287,60 +353,7 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
-  // Show select box for the option set
-  $optionsets = array();
-  foreach (galleria_optionsets() as $name => $optionset) {
-    $optionsets[$name] = check_plain($optionset['title']);
-  }
-  $form['galleria_optionset'] = array(
-    '#title' => t('Option set'),
-    '#type' => 'select',
-    '#options' => $optionsets,
-    '#default_value' => $settings['galleria_optionset'],
-  );
-
-  // Show select boxes for the various image styles (thumbnail, normal, big)
-  $image_styles = image_style_options(FALSE);
-  $form['galleria_big_style'] = array(
-    '#type' => 'select',
-    '#title' => t('Big image style (for lightbox or fullscreen theme)'),
-    '#empty_option' => t('None (original image)'),
-    '#options' => $image_styles,
-    '#default_value' => $settings['galleria_big_style'],
-  );
-  $form['galleria_zoom_style'] = array(
-    '#type' => 'select',
-    '#title' => t('Normal image style'),
-    '#empty_option' => t('None (original image)'),
-    '#options' => $image_styles,
-    '#default_value' => $settings['galleria_zoom_style'],
-  );
-  $form['galleria_thumb_style'] = array(
-    '#type' => 'select',
-    '#title' => t('Thumbnail image style'),
-    '#empty_option' => t('None (original image)'),
-    '#options' => $image_styles,
-    '#default_value' => $settings['galleria_thumb_style'],
-  );
-
-  // Show the theme select box if there is more than one theme
-  $themes = array_keys(galleria_get_themes(TRUE));
-  if (count($themes) == 1) {
-    $form['galleria_theme'] = array(
-      '#type' => 'value',
-      '#value' => $themes[0],
-    );
-  }
-  elseif (count($themes) > 1) {
-    asort($themes);
-
-    $form['galleria_theme'] = array(
-      '#type' => 'select',
-      '#title' => t('Theme'),
-      '#options' => array_combine($themes, $themes),
-      '#default_value' => isset($settings['galleria_theme']) ? $settings['galleria_theme'] : 'classic', // defaults to classic theme
-    );
-  }
+  $form = galleria_settings_form($settings);
 
   // Show select box for image fields if we're formatting a node_reference field
   if ($field['type'] == 'node_reference') {
@@ -451,64 +464,19 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
  * Prepares a renderable array of images and adds the neccessary JS and CSS
  */
 function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-  $settings = $display['settings'];
-
   if ($field['type'] == 'node_reference') {
-    $items = galleria_get_referenced_images($settings['galleria_reference_img_src']);
+    $items = galleria_get_referenced_images($display['settings']['galleria_reference_img_src']);
   }
 
+  $element = array();
   if (count($items) > 0) {
-    // Each Galleria instance gets a unique id
-    $element_id = &drupal_static(__FUNCTION__, 0);
-    $element = array(
-      '#id' => ++$element_id,
+    $element[] = array(
       '#theme' => 'galleria_container',
-      '#attached' => galleria_attachments($element_id, $settings),
+      '#items' => $items,
+      '#settings' => $display['settings'],
     );
-
-    foreach ($items as $delta => $item) {
-      // Get URL for "normal" image
-      if (empty($settings['galleria_zoom_style'])) {
-         $zoom_url = file_create_url($item['uri']);
-      }
-      else {
-         $zoom_url = image_style_url($settings['galleria_zoom_style'], $item['uri']);
-      }
-
-      // Get URL for "big" image (for lightbox and fullscreen)
-      if (empty($settings['galleria_big_style'])) {
-        $big_url = file_create_url($item['uri']);
-      }
-      elseif ($settings['galleria_big_style'] != $settings['galleria_zoom_style']) {
-        $big_url = image_style_url($settings['galleria_big_style'], $item['uri']);
-      }
-
-      if (!empty($big_url)) {
-        $options = array(
-          'attributes' => array(
-            'rel' => $big_url,
-          )
-        );
-      }
-      else {
-        $options = array();
-      }
-      $element['#items'][$delta] = array(
-        '#theme' => 'image_formatter',
-        '#item' => $item,
-        '#image_style' => $display['settings']['galleria_thumb_style'],
-        '#path' => array(
-           'path' => $zoom_url,
-           'options' => $options,
-        ),
-      );
-    }
-
-    return $element;
   }
-  else {
-    return array();
-  }
+  return $element;
 }
 
 /*
@@ -539,8 +507,8 @@ function galleria_get_referenced_images($field) {
 /*
  * This function attaches the required JavaScripts and settings to the Galleria element.
  */
-function galleria_attachments($id, $settings) {
-  // Static array to remember which options and scripts are already attached.
+function galleria_add_js($id, $settings) {
+  // Static array to remember which scripts are already attached.
   $cache = &drupal_static(__FUNCTION__, array());
 
   // Library JavaScript
@@ -549,11 +517,11 @@ function galleria_attachments($id, $settings) {
     $lib = galleria_get_library_file();
     if ($lib === FALSE) {
       drupal_set_message(t('The Galleria JavaScript file was not found in its path. Please refer to README.txt for installation instructions.'), 'error');
-      return array();
+      return;
     }
     $cache['lib'] = $lib;
   }
-  $js[] = $cache['lib'];
+  drupal_add_js($cache['lib']);
 
   // Theme
   //   As it's only possible to use one theme per page, use the first one we get for everything.
@@ -567,7 +535,7 @@ function galleria_attachments($id, $settings) {
     $cache['theme'] = $theme_file;
   }
   if (!empty($cache['theme'])) {
-    $js[] = $cache['theme'];
+    drupal_add_js($cache['theme']);
   }
 
   // Option set
@@ -595,13 +563,8 @@ function galleria_attachments($id, $settings) {
       ),
     );
   }
-  $js[] = array(
-    'type' => 'setting',
-    'data' => array('galleria' => $js_settings),
-  );
+  drupal_add_js(array('galleria' => $js_settings), 'setting');
 
   // Loader JavaScript
-  $js[] = drupal_get_path('module', 'galleria') . '/js/galleria.load.js';
-
-  return array('js' => $js);
+  drupal_add_js(drupal_get_path('module', 'galleria') . '/js/galleria.load.js');
 }

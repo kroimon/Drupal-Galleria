@@ -2,14 +2,10 @@
 /*
  * Implements hook_views_plugins().
  *
- * This function annnounces the style plugin for galleria views
+ * This function annnounces the style plugin for Galleria views.
  */
 function galleria_views_plugins() {
-  $path = drupal_get_path('module', 'galleria');
-  $views_path = drupal_get_path('module', 'views');
-  require_once DRUPAL_ROOT . '/' . "$path/theme/theme.inc";
-
-  $data = array(
+  return array(
     'module' => 'galleria', // This just tells our themes are elsewhere.
     'style' => array(
       // Style plugin for the navigation.
@@ -17,10 +13,9 @@ function galleria_views_plugins() {
         'title' => t('Galleria'),
         'help' => t('Display the results as a galleria image gallery.'),
         'handler' => 'views_plugin_style_galleria',
-        'path' => "$path/theme",
         'theme' => 'views_view_galleria',
         'theme file' => 'theme.inc',
-        'theme path' => "$path/theme",
+        'theme path' => drupal_get_path('module', 'galleria') . '/theme',
         'uses row plugin' => FALSE,
         'uses fields' => TRUE,
         'uses options' => TRUE,
@@ -29,5 +24,4 @@ function galleria_views_plugins() {
       ),
     ),
   );
-  return $data;
 }
