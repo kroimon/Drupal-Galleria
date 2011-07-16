@@ -357,27 +357,16 @@ function galleria_field_formatter_settings_form($field, $instance, $view_mode, $
 
   // Show select box for image fields if we're formatting a node_reference field
   if ($field['type'] == 'node_reference') {
-    $ref_node_type = array_values(array_filter($field['settings']['referenceable_types']));
-
-    // @todo possibly use field_info_fields().
-    // @todo if there is more than one referenced type, read out image fields of all referenced types
-    $sql = "SELECT
-              conf.field_name
-            FROM
-              field_config as conf
-              INNER JOIN field_config_instance as inst
-              ON conf.id = inst.field_id
-            WHERE
-              inst.bundle = '$ref_node_type[0]' AND
-              conf.type = 'image' AND
-              conf.deleted = 0";
-    $result = db_query($sql);
-
+    // Find all image fields
     $image_fields = array();
-    while ($option = $result->fetchAssoc()) {
-       if ($option['field_name'] != 'body') {
-         $image_fields[$option['field_name']] = $option['field_name'];
-       }
+    $fields = field_info_fields();
+    $ref_node_types = array_filter($field['settings']['referenceable_types']);
+    foreach ($ref_node_types as $ref_node_type) {
+      foreach (field_info_instances('node', $ref_node_type) as $field_name => $field_instance) {
+        if ($fields[$field_name]['type'] == 'image') {
+          $image_fields[$field_name] = $field_name;
+        }
+      }
     }
     asort($image_fields);
 
