@@ -492,7 +492,7 @@ function galleria_form_optionset_edit($form, &$form_state, $optionset) {
   }
 
   // 'Add option' row at the end of the table
-  $options = array_diff_key(array_keys(galleria_option_elements()), array_keys($optionset['options']));
+  $options = array_diff(array_keys(galleria_option_elements()), array_keys($optionset['options']));
   $options = empty($options) ? array() : array_combine($options, $options);
   $form['options'][] = array(
     'add_option_row' => array(
