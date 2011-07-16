@@ -330,7 +330,7 @@ function galleria_field_formatter_info() {
   return array(
     'galleria' => array(
       'label' => t('Galleria'),
-      'field types' => array('image', 'node_reference'),
+      'field types' => array('image', 'node_reference', 'media'),
       'settings' => array(
         'galleria_optionset' => 'default',
         'galleria_theme' => 'classic',
@@ -455,6 +455,17 @@ function galleria_field_formatter_settings_summary($field, $instance, $view_mode
 function galleria_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   if ($field['type'] == 'node_reference') {
     $items = galleria_get_referenced_images($display['settings']['galleria_reference_img_src']);
+  }
+  elseif ($field['type'] == 'media') {
+    $image_items = array();
+    foreach ($items as $item) {
+      if ($item['file']->type == 'image') {
+        $file = (array) $item['file'];
+        $file += array('alt' => '', 'title' => '');
+        $image_items[] = $file;
+      }
+    }
+    $items = $image_items;
   }
 
   $element = array();
