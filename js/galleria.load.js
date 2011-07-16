@@ -6,7 +6,7 @@ Drupal.behaviors.galleria = {
     $('.galleria-content', context).once('galleria', function() {
       $(this).each(function() {
         var $this = $(this);
-        var id = $this.attr('id').substr(9);
+        var id = $this.attr('id');
         var optionset = settings.galleria.instances[id];
         if (optionset) {
           $this.galleria(settings.galleria.optionsets[optionset]);

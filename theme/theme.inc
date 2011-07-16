@@ -10,7 +10,7 @@ function template_preprocess_galleria_container(&$vars) {
   $settings = &$vars['settings'];
 
   // Each Galleria instance gets a unique id
-  $galleria_id = &drupal_static('galleria_id', 42);
+  $galleria_id = &drupal_static('galleria_id', 0);
   $vars['id'] = ++$galleria_id;
 
   // Attach Galleria JavaScript

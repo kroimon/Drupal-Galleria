@@ -541,14 +541,14 @@ function galleria_add_js($id, $settings) {
         $optionset['name'] => $optionset['options'],
       ),
       'instances' => array(
-        $id => $optionset['name'],
+        'galleria-' . $id => $optionset['name'],
       ),
     );
   }
   else {
     $js_settings = array(
       'instances' => array(
-        $id => FALSE,
+        'galleria-' . $id => FALSE,
       ),
     );
   }
