@@ -14,7 +14,6 @@ TODO's
 
 - Support images from non public directories
 - Solve further issues from the module page on drupal.org/project/galleria
-- Add media project support
 
 HOWTO install galleria
 ----------------------
@@ -32,14 +31,15 @@ HOWTO install galleria
 HOWTO use Galleria
 ------------------
 
-a) Using Galleria with an image/nodereference field in a node:
+a) Using Galleria with an image field in a node:
+In this mode you'll upload an image multiple times to reuse it.
+A Gallery can be created in a single step.
 
     1. Create your gallery content type or alter an existing one.
     
-    2. Add an image/nodereference field to your content type. If you choose a node reference field,
-       make sure you reference a content type that has got an image field.
+    2. Add an image/nodereference field to your content type.
     
-    3. Go to the Manage Display page of your content type. On your image/nodereference field in the 
+    3. Go to the Manage Display page of your content type. On your image field in the 
        FORMAT column, choose "Galleria" as formatter in the select box. Next click on the button on 
        the right of the select box and choose your image style presets for the main image ("Zoomed $
        image style") and the preview thumbnails. If you downloaded additional themes for galleria you
@@ -48,11 +48,39 @@ a) Using Galleria with an image/nodereference field in a node:
     4. Upload some images, add titles if you want and view the node. You should now be able see the images
        in the galleria display widget.
 
-b) Using Galleria in a view of image fields
+b) Using Galleria with an imagenode and a nodereference gallery:
+In this mode you'll create one single node per image. An additional gallery content type will hold a
+nodereference. Creating a gallery is a multi step process, but images can be reused across galleries.
+
+    1. Create your image content type or alter an existing one.
+
+    2. Add an image field to your content type. Only allow ONE single image per node.
+
+    3. Create your gallery content type or alter an existing one.
+    
+    4. Add a nodereference field to your content type.
+       Make sure you reference the content type from step #1.
+    
+    5. Go to the Manage Display page of your gallery content type. On your nodereference field in the 
+       FORMAT column, choose "Galleria" as formatter in the select box. Next click on the button on 
+       the right of the select box and choose your image style presets for the main image ("Zoomed $
+       image style") and the preview thumbnails. If you downloaded additional themes for galleria you
+       are further able to choose the theme you want to use here.
+       
+    6. Upload some images, add titles if you want. Create a gallery node, reference images and view the node.
+       You should now be able see the images in the galleria display widget.
+
+c) Using Galleria with a media field
+
+   @todo describe this case
+
+d) Using Galleria in a view of image fields
+List any node/gallery with image fields using views. Use any filter you like (e.g. taxonomy) to structure galleries.
+This description contains only the most basic steps.
 
     1. Create a view of nodes with an image field. On the "FIELDS" panel in views set the display to "Fields"
-       and add the target field (which has to be of type image!). If you have other fields in 
-       the view, the first image field in the list will be used.
+       and add the target field (which has to be of type image!). Select "Image" as field formatter.
+       If you have other fields in the view, the first image field in the list will be used.
     
     2. On the "FORMAT" Panel choose Galleria as your views display format.
    
