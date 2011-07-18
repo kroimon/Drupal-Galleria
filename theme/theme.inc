@@ -6,6 +6,9 @@
  * functions to make theming easier.
  */
 
+/**
+ * @todo
+ */
 function template_preprocess_galleria_container(&$vars) {
   $settings = &$vars['settings'];
 
@@ -19,10 +22,15 @@ function template_preprocess_galleria_container(&$vars) {
   // Get the items (images) to render
   if (!empty($vars['view'])) {
     $items = array();
+    $view = $vars['view'];
     $img_field_name = $vars['img_field_name'];
     foreach ($vars['rows'] as $key => $data) {
-      $lang = $data->_field_data['nid']['entity']->language;
-      $item = $data->_field_data['nid']['entity']->{$img_field_name}[$lang][0];
+      $lang = $data->_field_data[$view->base_field]['entity']->language;
+      // omit rows without image field.
+      if (!isset($rdata->_field_data[$view->base_field]['entity']->{$img_field_name})) {
+        continue;
+      }
+      $item = $data->_field_data[$view->base_field]['entity']->{$img_field_name}[$lang][0];
       $items[] = $item;
     }
   }
@@ -73,17 +81,26 @@ function template_preprocess_galleria_container(&$vars) {
   }
 }
 
-function theme_views_view_galleria($variables) {
+/**
+ * @todo
+ */
+function theme_views_view_galleria($vars) {
   $items = array();
-  $img_field_name = $variables['img_field_name'];
-  foreach ($variables['rows'] as $row) {
-    $lang = $row->_field_data['nid']['entity']->language;
-    $item = $row->_field_data['nid']['entity']->{$img_field_name}[$lang][0];
+
+  $view = $vars['view'];
+  $img_field_name = $vars['img_field_name'];
+  foreach ($vars['rows'] as $row) {
+    $lang = $row->_field_data[$view->base_field]['entity']->language;
+    // omit rows without image field.
+    if (!isset($row->_field_data[$view->base_field]['entity']->{$img_field_name})) {
+      continue;
+    }
+    $item = $row->_field_data[$view->base_field]['entity']->{$img_field_name}[$lang][0];
     $items[] = $item;
   }
 
   return theme('galleria_container', array(
     'items' => $items,
-    'settings' => $variables['options'],
+    'settings' => $vars['options'],
   ));
 }
