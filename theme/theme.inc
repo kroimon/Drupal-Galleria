@@ -19,26 +19,8 @@ function template_preprocess_galleria_container(&$vars) {
   // Attach Galleria JavaScript
   galleria_add_js($galleria_id, $settings);
 
-  // Get the items (images) to render
-  if (!empty($vars['view'])) {
-    $items = array();
-    $view = $vars['view'];
-    $img_field_name = $vars['img_field_name'];
-    foreach ($vars['rows'] as $key => $data) {
-      $lang = $data->_field_data[$view->base_field]['entity']->language;
-      // omit rows without image field.
-      if (!isset($rdata->_field_data[$view->base_field]['entity']->{$img_field_name})) {
-        continue;
-      }
-      $item = $data->_field_data[$view->base_field]['entity']->{$img_field_name}[$lang][0];
-      $items[] = $item;
-    }
-  }
-  else {
-    $items = $vars['items'];
-  }
-
   // Prepare image elements
+  $items = $vars['items'];
   $vars['items'] = array();
   foreach ($items as $delta => $item) {
     $thumb_style = empty($settings['galleria_thumb_style']) ? 'galleria_thumb' : $settings['galleria_thumb_style'];
