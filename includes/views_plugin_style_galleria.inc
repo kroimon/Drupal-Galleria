@@ -1,7 +1,11 @@
 <?php
+/**
+ * @file
+ * Galleria style plugin for the Views module.
+ */
 
 /**
-  * Implements views_plugin_style().
+  * Implements a style type plugin for the Views module.
   */
 class views_plugin_style_galleria extends views_plugin_style {
 

@@ -1,4 +1,9 @@
 <?php
+/**
+ * @file
+ * Contains core functions for the Views module support.
+ */
+
 /*
  * Implements hook_views_plugins().
  *

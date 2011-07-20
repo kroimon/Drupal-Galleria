@@ -1,13 +1,14 @@
 <?php
 /**
- * @file theme.inc
- *
- * An array of preprocessors to fill variables for templates and helper
+ * @file
+ * Theming functions for the Galleria module.
+ * 
+ * Preprocessor functions fill variables for templates and helper
  * functions to make theming easier.
  */
 
 /**
- * @todo
+ * Template preprocess handler for 'galleria_container' theme.
  */
 function template_preprocess_galleria_container(&$vars) {
   $settings = &$vars['settings'];
@@ -64,7 +65,7 @@ function template_preprocess_galleria_container(&$vars) {
 }
 
 /**
- * @todo
+ * Theme 'views_view_galleria'.
  */
 function theme_views_view_galleria($vars) {
   $items = array();

@@ -220,7 +220,7 @@ function galleria_option_elements() {
       '#type' => 'checkbox',
       '#title' => t('Image pan effect'),
       '#description' => t('Galleria comes with a built-in panning effect. The effect is sometimes useful if you have cropped images and want to let the users pan across the stage to see the entire image.<br />'
-                         .'Enable this to apply a mouse-controlled movement of the image to reveal the cropped parts. This effect is useful if you want to avoid dark areas around the image but still be able to view the entire image.'),
+                        . 'Enable this to apply a mouse-controlled movement of the image to reveal the cropped parts. This effect is useful if you want to avoid dark areas around the image but still be able to view the entire image.'),
       '#default_value' => FALSE,
     ),
     'imagePanSmoothness' => array(
@@ -303,7 +303,7 @@ function galleria_option_elements() {
       '#type' => 'textfield',
       '#title' => t('Preload images'),
       '#description' => t('Defines how many images Galleria should preload in advance. Please note that this only applies when you are using separate thumbnail files. Galleria always cache all preloaded images.<br />'
-                         .'\'2\' preloads the next 2 images in line, \'all\' forces Galleria to start preloading all images. This may slow down client. \'0\' will not preload any images.'),
+                        . '\'2\' preloads the next 2 images in line, \'all\' forces Galleria to start preloading all images. This may slow down client. \'0\' will not preload any images.'),
       '#element_validate' => array('_galleria_validate_preload'),
       '#default_value' => 2,
     ),
@@ -359,7 +359,7 @@ function galleria_option_elements() {
       '#type' => 'checkbox',
       '#title' => t('Fit thumbnails'),
       '#description' => t('If this is enabled, all thumbnail containers will be shrinked to fit the actual thumbnail size. This is useful if you have thumbnails of various sizes and will them float nicely side-by-side.<br />'
-                         .'This is only relevant if thumbCrop is set to anything else but "crop". If you want all thumbnails to fit inside a container with predefined width & height, disable this.'),
+                        . 'This is only relevant if thumbCrop is set to anything else but "crop". If you want all thumbnails to fit inside a container with predefined width & height, disable this.'),
       '#default_value' => TRUE,
     ),
     'thumbMargin' => array(
@@ -446,7 +446,8 @@ function galleria_option_element($option, $value) {
 function galleria_form_optionset_edit($form, &$form_state, $optionset) {
   if (empty($form_state['optionset'])) {
     $form_state['optionset'] = $optionset;
-  } else {
+  }
+  else {
     $optionset = $form_state['optionset'];
   }
 

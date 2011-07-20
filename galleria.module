@@ -167,7 +167,8 @@ function galleria_optionset_save($optionset, $new = FALSE) {
 
   if ($new) {
     drupal_write_record('galleria_optionset', $optionset);
-  } else {
+  }
+  else {
     drupal_write_record('galleria_optionset', $optionset, 'name');
   }
   return $optionset;
