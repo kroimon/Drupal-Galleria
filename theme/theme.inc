@@ -11,35 +11,41 @@
  * Template preprocess handler for 'galleria_container' theme.
  */
 function template_preprocess_galleria_container(&$vars) {
-  $settings = &$vars['settings'];
-
   // Each Galleria instance gets a unique id
   $galleria_id = &drupal_static('galleria_id', 0);
   $vars['id'] = ++$galleria_id;
 
+  // Load the used option set
+  if (!empty($vars['settings']['galleria_optionset'])) {
+    $optionset = galleria_optionset_load($vars['settings']['galleria_optionset']);
+  }
+  if (empty($optionset)) {
+    // Fall back to 'default' option set
+    $optionset = galleria_optionset_load('default');
+  }
+
   // Attach Galleria JavaScript
-  galleria_add_js($galleria_id, $settings);
+  galleria_add_js($galleria_id, $optionset);
 
   // Prepare image elements
   $items = $vars['items'];
   $vars['items'] = array();
+  $thumb_style = empty($optionset['imagestyle_thumb']) ? 'galleria_thumb' : $optionset['imagestyle_thumb'];
   foreach ($items as $delta => $item) {
-    $thumb_style = empty($settings['galleria_thumb_style']) ? 'galleria_thumb' : $settings['galleria_thumb_style'];
-    
     // Get URL for "normal" image
-    if (empty($settings['galleria_zoom_style'])) {
-       $zoom_url = file_create_url($item['uri']);
+    if (empty($optionset['imagestyle_normal'])) {
+       $normal_url = file_create_url($item['uri']);
     }
     else {
-       $zoom_url = image_style_url($settings['galleria_zoom_style'], $item['uri']);
+       $normal_url = image_style_url($optionset['imagestyle_normal'], $item['uri']);
     }
 
     // Get URL for "big" image (for lightbox and fullscreen)
-    if (empty($settings['galleria_big_style'])) {
+    if (empty($optionset['imagestyle_big'])) {
       $big_url = file_create_url($item['uri']);
     }
-    elseif ($settings['galleria_big_style'] != $settings['galleria_zoom_style']) {
-      $big_url = image_style_url($settings['galleria_big_style'], $item['uri']);
+    elseif ($optionset['imagestyle_big'] != $optionset['imagestyle_normal']) {
+      $big_url = image_style_url($optionset['imagestyle_big'], $item['uri']);
     }
 
     if (!empty($big_url)) {
@@ -57,7 +63,7 @@ function template_preprocess_galleria_container(&$vars) {
       '#item' => $item,
       '#image_style' => $thumb_style,
       '#path' => array(
-         'path' => $zoom_url,
+         'path' => $normal_url,
          'options' => $options,
       ),
     );

@@ -25,6 +25,34 @@ function galleria_schema() {
           'length' => 255,
           'not null' => TRUE,
         ),
+        'theme' => array(
+          'description' => 'The Galleria theme.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => 'classic',
+        ),
+        'imagestyle_thumb' => array(
+          'description' => 'The image style for thumbnails.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => 'galleria_thumb',
+        ),
+        'imagestyle_normal' => array(
+          'description' => 'The image style for normal images.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => 'galleria_zoom',
+        ),
+        'imagestyle_big' => array(
+          'description' => 'The image style for big images (lightbox and fullscreen).',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '', // original image
+        ),
         'options' => array(
           'description' => 'The options array.',
           'type' => 'blob',
@@ -105,6 +133,46 @@ function galleria_update_7000() {
       'options' => serialize($options),
     ))->execute();
   }
+}
+
+/**
+ * Integrate image style settings into the option sets.
+ */
+function galleria_update_7001() {
+  $new_fields = array(
+    'theme' => array(
+      'description' => 'The Galleria theme.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => 'classic',
+    ),
+    'imagestyle_thumb' => array(
+      'description' => 'The image style for thumbnails.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => 'galleria_thumb',
+    ),
+    'imagestyle_normal' => array(
+      'description' => 'The image style for normal images.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => 'galleria_zoom',
+    ),
+    'imagestyle_big' => array(
+      'description' => 'The image style for big images (lightbox and fullscreen).',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '', // original image
+    ),
+  );
+  foreach ($new_fields as $field => $spec) {
+    db_add_field('galleria_optionset', $field, $spec);
+  }
+  return t('You have to re-adjust the theme and image styles for your Galleria instances.');
 }
 
 

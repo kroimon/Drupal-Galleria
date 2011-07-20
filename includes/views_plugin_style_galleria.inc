@@ -18,9 +18,6 @@ class views_plugin_style_galleria extends views_plugin_style {
     $options += array(
       'galleria_optionset' => array('default' => 'default'),
       'galleria_theme' => array('default' => 'classic'),
-      'galleria_big_style' => array('default' => ''),
-      'galleria_zoom_style' => array('default' => 'galleria_zoom'),
-      'galleria_thumb_style' => array('default' => 'galleria_thumb'),
     );
 
     return $options;
@@ -36,7 +33,17 @@ class views_plugin_style_galleria extends views_plugin_style {
       '#type' => 'fieldset',
       '#title' => 'Galleria',
     );
-    $form['galleria'] += galleria_settings_form($this->options);
+
+    $optionsets = array();
+    foreach (galleria_optionsets() as $name => $optionset) {
+      $optionsets[$name] = check_plain($optionset['title']);
+    }
+    $form['galleria']['galleria_optionset'] = array(
+      '#title' => t('Option set'),
+      '#type' => 'select',
+      '#options' => $optionsets,
+      '#default_value' => $this->options['galleria_optionset'],
+    );
   }
 
   /**

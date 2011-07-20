@@ -461,6 +461,58 @@ function galleria_form_optionset_edit($form, &$form_state, $optionset) {
     '#required' => TRUE,
   );
 
+  // Show the theme select box if there is more than one theme
+  $themes = array_keys(galleria_get_themes(TRUE));
+  if (count($themes) == 1) {
+    $form['galleria_theme'] = array(
+      '#type' => 'hidden',
+      '#value' => $themes[0],
+    );
+  }
+  elseif (count($themes) > 1) {
+    asort($themes);
+
+    $form['theme'] = array(
+      '#type' => 'select',
+      '#title' => t('Theme'),
+      '#description' => t('As you have more than one Galleria theme installed, please select the one to use.'),
+      '#options' => array_combine($themes, $themes),
+      '#default_value' => $optionset['theme'],
+    );
+  }
+
+  // Show select boxes for the various image styles (thumbnail, normal, big)
+  $image_styles = image_style_options(FALSE);
+  $form['image_styles'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Image styles',
+    '#tree' => TRUE,
+  );
+  $form['image_styles']['thumb'] = array(
+    '#type' => 'select',
+    '#title' => t('Thumbnail image style'),
+    '#description' => t('Image style for the thumbnail bar.'),
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+    '#default_value' => $optionset['imagestyle_thumb'],
+  );
+  $form['image_styles']['normal'] = array(
+    '#type' => 'select',
+    '#title' => t('Normal image style'),
+    '#description' => t('Image style for the main stage images.'),
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+    '#default_value' => $optionset['imagestyle_normal'],
+  );
+  $form['image_styles']['big'] = array(
+    '#type' => 'select',
+    '#title' => t('Big image style'),
+    '#description' => t('Image style for lightbox or fullscreen theme.'),
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+    '#default_value' => $optionset['imagestyle_big'],
+  );
+
   // Option table
   $form['options'] = array(
     '#theme' => 'galleria_form_table',
@@ -646,6 +698,11 @@ function galleria_form_optionset_edit_submit($form, &$form_state) {
   $optionset = &$form_state['optionset'];
 
   $optionset['title'] = $form_state['values']['title'];
+  $optionset['theme'] = $form_state['values']['theme'];
+  $optionset['imagestyle_thumb']  = $form_state['values']['image_styles']['thumb'];
+  $optionset['imagestyle_normal'] = $form_state['values']['image_styles']['normal'];
+  $optionset['imagestyle_big']    = $form_state['values']['image_styles']['big'];
+
   foreach ($form_state['values']['options'] as $index => $elements) {
     $option = $form['options'][$index]['value']['#option_name'];
     $value  = $elements['value'];
