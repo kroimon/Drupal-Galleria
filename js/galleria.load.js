@@ -1,5 +1,10 @@
 (function ($) {
 
+// Load the theme once on page load
+$(function () {
+  Galleria.loadTheme(Drupal.settings.galleria.themepath);
+});
+
 // Behavior to load Galleria
 Drupal.behaviors.galleria = {
   attach: function(context, settings) {

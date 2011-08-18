@@ -443,7 +443,7 @@ function galleria_add_js($id, $optionset) {
     }
     $cache['lib'] = $lib;
   }
-  drupal_add_js($cache['lib']);
+  drupal_add_js($cache['lib'], array('group' => JS_LIBRARY));
 
   // Theme
   //   As it's only possible to use one theme per page, use the first one we get for everything.
@@ -456,12 +456,10 @@ function galleria_add_js($id, $optionset) {
     }
     $cache['theme'] = $theme_file;
   }
-  if (!empty($cache['theme'])) {
-    drupal_add_js($cache['theme']);
-  }
 
-  // Option set
+  // JavaScript settings
   $js_settings = array(
+    'themepath' => file_create_url($cache['theme']),
     'optionsets' => array(
       $optionset['name'] => $optionset['options'],
     ),
