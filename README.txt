@@ -130,7 +130,6 @@ A: That's what the issue tracker is for! Just create a new issue at http://drupa
 
 The Drupal 7 port lacks some of the features of the old Drupal 6 version:
 
-- Images within private directories are currently not supported!
 - No jCarousel support
 - No Lightbox2 support (integrated lightbox support only)
 - No administer permission
