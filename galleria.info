@@ -1,7 +1,6 @@
 name = Galleria
-description = Turns image fields of nodes into Galleria galleries with this javascript (JQ) image gallery.
+description = Turns image fields of nodes into Galleria galleries with this JavaScript (JQuery) image gallery.
 core = 7.x
-package = "JQuery"
 configure = admin/config/media/galleria
 
 dependencies[] = image
