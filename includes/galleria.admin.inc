@@ -451,6 +451,13 @@ function galleria_form_optionset_edit($form, &$form_state, $optionset) {
     $optionset = $form_state['optionset'];
   }
 
+  // Print a warning if there's no height and/or width option in the set.
+  foreach (array('height', 'width') as $dimension) {
+    if (!array_key_exists($dimension, $optionset['options'])) {
+      drupal_set_message(t('You should add a %dimension option if you don\'t plan to set it manually via CSS.', array('%dimension' => $dimension)), 'warning');
+    }
+  }
+
   // Title
   $form['title'] = array(
     '#type' => 'textfield',
