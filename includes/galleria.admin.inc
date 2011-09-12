@@ -471,7 +471,7 @@ function galleria_form_optionset_edit($form, &$form_state, $optionset) {
   // Show the theme select box if there is more than one theme
   $themes = array_keys(galleria_get_themes(TRUE));
   if (count($themes) == 1) {
-    $form['galleria_theme'] = array(
+    $form['theme'] = array(
       '#type' => 'hidden',
       '#value' => $themes[0],
     );
