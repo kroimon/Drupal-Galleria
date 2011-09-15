@@ -427,17 +427,19 @@ function galleria_option_elements() {
  */
 function galleria_option_element($option, $value) {
   $elements = galleria_option_elements();
-  $field = isset($elements[$option]) ? $elements[$option] : array('#type' => 'textfield');
+  $element = isset($elements[$option]) ? $elements[$option] : array('#type' => 'textfield');
 
   if ($value !== NULL) {
-    if ($value === TRUE)
-      $value = 'true';
-    elseif ($value === FALSE)
-      $value = 'false';
-    $field['#default_value'] = (string) $value;
+    if ($element['#type'] == 'select') {
+      if ($value === TRUE)
+        $value = 'true';
+      elseif ($value === FALSE)
+        $value = 'false';
+    }
+    $element['#default_value'] = $value;
   }
 
-  return $field;
+  return $element;
 }
 
 /**
@@ -710,13 +712,16 @@ function galleria_form_optionset_edit_submit($form, &$form_state) {
   $optionset['imagestyle_normal'] = $form_state['values']['image_styles']['normal'];
   $optionset['imagestyle_big']    = $form_state['values']['image_styles']['big'];
 
-  foreach ($form_state['values']['options'] as $index => $elements) {
-    $option = $form['options'][$index]['value']['#option_name'];
-    $value  = $elements['value'];
+  foreach ($form_state['values']['options'] as $index => $values) {
+    $element = $form['options'][$index]['value'];
+    $value  = $values['value'];
 
     if ($value !== '') {
       // Do some typeguessing here...
-      if (is_numeric($value)) { // || intval($value) != $value || $value < 0)
+      if ($element['#type'] == 'checkbox') {
+        $value = (bool) $value;
+      }
+      elseif (is_numeric($value)) { // || intval($value) != $value || $value < 0)
         $value = (float) $value;
       }
       elseif (strcasecmp($value, 'true') == 0) {
@@ -726,6 +731,8 @@ function galleria_form_optionset_edit_submit($form, &$form_state) {
         $value = FALSE;
       }
     }
+
+    $option = $element['#option_name'];
     $optionset['options'][$option] = $value;
   }
 
