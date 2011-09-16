@@ -64,6 +64,25 @@ function galleria_menu() {
 }
 
 /**
+ * Implements hook_help().
+ */
+function galleria_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/media/galleria/edit/%':
+      return
+          '<p>'
+        . t('An <em>option set</em> defines exactly how a Galleria image gallery looks like on your site. '
+          . 'It is s a combination of <a href="@styles">image styles</a> for the various image sizes, Galleria theme and options.', array('@styles' => url('admin/config/media/image-styles'))). '<br />'
+        . t('For a full documentation of all options, refer to the official <a href="@docs">Galleria documentation</a>.', array('@docs' => url('http://galleria.aino.se/docs/1.2/options/')))
+        . '</p>';
+
+    case 'admin/config/media/galleria/advanced':
+      return '<p>' . t('This page lists some automatically detected files and folders. To improve performance, they are cached until the files get deleted.<br />'
+                   . 'If the module behaves strangely, try to clear the cached values below.') . '</p>';
+  }
+}
+
+/**
  * Implements hook_theme().
  */
 function galleria_theme() {
