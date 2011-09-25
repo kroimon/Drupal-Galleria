@@ -244,25 +244,29 @@ function galleria_get_themes($nocache = FALSE) {
 
   // Search for theme folders
   $path = libraries_get_path('galleria') . '/themes/';
-  $path_handle = opendir($path);
-  while (($theme = readdir($path_handle)) !== FALSE) {
-    if (!is_dir($path . $theme) || $theme[0] == '.')
-      continue;
 
-    // Search for the theme JavaScript file, minified version first
-    $js = glob($path . $theme . '/*.min.js');
-    if (count($js) == 0)
-      $js = glob($path . $theme . '/*.js');
+  if (is_dir($path) && (($path_handle = opendir($path)) !== FALSE)) {
+    while (($theme = readdir($path_handle)) !== FALSE) {
 
-    // Sort by filename to (hopefully) get the newest version.
-    if (count($js) > 0) {
-      rsort($js);
-      $themes[$theme] = $js[0];
+      if (!is_dir($path . $theme) || $theme[0] == '.')
+        continue;
+
+      // Search for the theme JavaScript file, minified version first
+      $js = glob($path . $theme . '/*.min.js');
+      if (count($js) == 0)
+        $js = glob($path . $theme . '/*.js');
+
+      // Sort by filename to (hopefully) get the newest version.
+      if (count($js) > 0) {
+        rsort($js);
+        $themes[$theme] = $js[0];
+      }
     }
-  }
-  closedir($path_handle);
+    closedir($path_handle);
 
-  cache_set('galleria_themes', $themes);
+    cache_set('galleria_themes', $themes);
+  }
+
   return $themes;
 }
 

@@ -786,15 +786,22 @@ function galleria_form_settings() {
     '#type' => 'fieldset',
     '#title' => 'Library',
   );
+
+  $file = libraries_get_path('galleria');
+  if (!is_dir($file)) {
+    drupal_set_message(t('Library directory not found: <code>@file</code>', array('@file' => $file)), 'error', FALSE);
+  }
   $form['library']['lib_path'] = array(
     '#type' => 'item',
     '#title' => t('Library path'),
-    '#markup' => t('<code>@file</code>', array('@file' => libraries_get_path('galleria'))),
+    '#markup' => t('<code>@file</code>', array('@file' => $file)),
   );
+
+  $file = galleria_get_library_file();
   $form['library']['lib_file'] = array(
     '#type' => 'item',
     '#title' => t('Library file'),
-    '#markup' => t('<code>@file</code>', array('@file' => galleria_get_library_file())),
+    '#markup' => $file ? t('<code>@file</code>', array('@file' => $file)) : t('Unknown'),
     '#description' => t('This filename is cached until the file is deleted.'),
   );
 
