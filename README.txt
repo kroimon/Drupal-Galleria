@@ -97,7 +97,7 @@ You have to at least specify a height and width if you do not plan to set these 
 
 
 4. Customizing and adding themes
----...--------------------------
+--------------------------------
 
 Galleria supports several additional themes which can be bought and downloaded at http://galleria.aino.se/themes/.
 It's also possible to alter existing themes or completely create new ones. The documentation to do so can be found
