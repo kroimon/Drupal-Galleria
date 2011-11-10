@@ -161,7 +161,12 @@ function galleria_option_elements() {
     // 'dataConfig' => array(),
     // 'dataSelector' => array(),
     // 'dataSource' => array(),
-    // 'debug' => array(),
+    'debug' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Debug'),
+      '#description' => t('This option is for turning debug on/off. By default, Galleria displays errors by printing them out in the gallery container and sometimes throw exceptions. For deployment you can turn debug off to generate a more generic error message if a fatal error is raised.'),
+      '#default_value' => TRUE,
+    ),
     // 'easing' => array(),
     // 'extend' => array(),
     'fullscreenDoubleTap' => array(
