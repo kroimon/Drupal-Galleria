@@ -32,6 +32,11 @@ function template_preprocess_galleria_container(&$vars) {
   $vars['items'] = array();
   $thumb_style = empty($optionset['imagestyle_thumb']) ? 'galleria_thumb' : $optionset['imagestyle_thumb'];
   foreach ($items as $delta => $item) {
+    // Stop errors for empty URI. See issue [#1319268] for details.
+    if (empty($item['uri'])) {
+      continue;
+    }
+
     // Get URL for "normal" image
     if (empty($optionset['imagestyle_normal'])) {
        $normal_url = file_create_url($item['uri']);
